@@ -8,31 +8,24 @@ import (
 	"net/http"
 )
 
+type TunnelAttributes struct {
+	SSHPort     int    `json:"ssh_port"`
+	SubdomainID string `json:"subdomain"`
+	Public_Key  string `json:"ssh_key"`
+}
+type TunnelJsonData struct {
+	Type       string           `json:"type"`
+	Attributes TunnelAttributes `json:"attributes"`
+	ID         string           `json:"id"`
+}
 type OpenTunnelRequest struct {
-	Type      string `json:"type"`
-	Subdomain string `json:"subdomain"`
-	SSHPubKey string `json:"ssh_pub_key"`
+	Data TunnelJsonData `json:"data"`
 }
 type OpenTunnelResponse struct {
-	Data struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			SSHPort     int    `json:"ssh_port"`
-			SubdomainID string `json:"subdomain"`
-		} `json:"attributes"`
-		ID string `json:"id"`
-	} `json:"data"`
+	Data TunnelJsonData `json:"data"`
 }
-
 type TunnelsListResponse struct {
-	Data []struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			SSHPort     string `json:"ssh_port"`
-			SubdomainID string `json:"subdomain"`
-		} `json:"attributes"`
-		ID string `json:"id"`
-	} `json:"data"`
+	Data []TunnelJsonData `json:"data"`
 }
 
 //TunnelListAPI get list of subdomains reserved
@@ -105,7 +98,7 @@ func (restClient *RestClient) CreateTunnelAPI(requestBody OpenTunnelRequest) (Op
 func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 	url := restClient.URL + "/tunnel/" + subdomainName
 	client := &http.Client{}
-	req, err := http.NewRequest("Delete", url, nil)
+	req, err := http.NewRequest("DELETE", url, nil)
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := client.Do(req)
 	if err != nil {

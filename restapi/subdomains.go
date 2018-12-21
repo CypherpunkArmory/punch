@@ -3,35 +3,30 @@ package restapi
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
+type SubdomainAttributes struct {
+	InUse    bool   `json:"in_use"`
+	Name     string `json:"name"`
+	Reserved bool   `json:"reserved"`
+}
+type SubdomainJsonData struct {
+	Type       string              `json:"type"`
+	Attributes SubdomainAttributes `json:"attributes"`
+	ID         string              `json:"id"`
+}
 type ReserveSubdomainRequest struct {
-	Subdomain string `json:"subdomain"`
+	Data SubdomainJsonData `json:"data"`
 }
 type ReserveSubdomainResponse struct {
-	Data struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			Reserved bool   `json:"reserved"`
-			In_use   bool   `json:"in_use"`
-			Name     string `json:"name"`
-		} `json:"attributes"`
-		ID string `json:"id"`
-	} `json:"data"`
+	Data SubdomainJsonData `json:"data"`
 }
 type SubdomainListResponse struct {
-	Data []struct {
-		Type       string `json:"type"`
-		Attributes struct {
-			Reserved bool   `json:"reserved"`
-			Name     string `json:"name"`
-			InUse    bool   `json:"in_use"`
-		} `json:"attributes"`
-		ID string `json:"id"`
-	} `json:"data"`
+	Data []SubdomainJsonData `json:"data"`
 }
 
 //SubdomainListAPI get list of subdomains reserved
@@ -100,10 +95,17 @@ func (restClient *RestClient) ReserveSubdomainAPI(requestBody ReserveSubdomainRe
 
 //ReleaseSubodmainAPI deletes tunnel
 func (restClient *RestClient) ReleaseSubodmainAPI(subdomainName string) error {
-
-	url := restClient.URL + "/subdomain/" + subdomainName
+	id, err := restClient.GetSubdomainID(subdomainName)
+	if err != nil {
+		fmt.Println("error:", err)
+		panic(err)
+	}
+	if id == "" {
+		return errors.New("You do not own this subdomain")
+	}
+	url := restClient.URL + "/subdomain/" + id
 	client := &http.Client{}
-	req, err := http.NewRequest("Delete", url, nil)
+	req, err := http.NewRequest("DELETE", url, nil)
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -121,5 +123,20 @@ func (restClient *RestClient) ReleaseSubodmainAPI(subdomainName string) error {
 		err = json.Unmarshal(body, &errorBody)
 		return errorBody
 	}
-	return nil
+	return errors.New("Failed to delete")
+}
+
+func (restClient *RestClient) GetSubdomainID(subdomainName string) (string, error) {
+	responseBody, err := restClient.SubdomainListAPI()
+	if err != nil {
+		panic(err)
+	}
+	SubdomainList := responseBody.Data
+	for _, domain := range SubdomainList {
+		if domain.Attributes.Name == subdomainName {
+
+			return domain.ID, nil
+		}
+	}
+	return "", nil
 }

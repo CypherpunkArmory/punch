@@ -15,9 +15,11 @@
 package cmd
 
 import (
+	"HolePunchCLI/restapi"
 	"HolePunchCLI/tunnel"
 	"HolePunchCLI/utilities"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -28,21 +30,41 @@ var httpCmd = &cobra.Command{
 	Short: "Expose a web server on the port you specify",
 	Long:  `To expose a web server on port 80 punch http -p 80`,
 	Run: func(cmd *cobra.Command, args []string) {
+		var subdomainID string
 		if Subdomain == "" || utilities.CheckSubdomain(Subdomain) {
 			if utilities.CheckPort(Port) {
-				/*publicKey, err := utilities.GetPublicKey(PUBLIC_KEY_PATH)
+				publicKey, err := utilities.GetPublicKey(PUBLIC_KEY_PATH)
 				if err != nil {
 					fmt.Println("Unable to find public key")
 					os.Exit(3)
 				}
-				request := restapi.OpenTunnelRequest{
-					Type:      "http",
-					Subdomain: Subdomain,
-					SSHPubKey: publicKey,
-				}
+
 				restAPI := restapi.RestClient{
 					URL:    BASE_URL,
 					APIKEY: API_KEY,
+				}
+				if Subdomain != "" {
+					subdomainID, err = restAPI.GetSubdomainID(Subdomain)
+					if err != nil {
+						fmt.Println("Cant connect to holepunch api")
+						os.Exit(0)
+					}
+					if subdomainID == "" {
+						fmt.Println("You do not own this domain")
+						os.Exit(0)
+					}
+				} else {
+					subdomainID = "-1"
+				}
+
+				request := restapi.OpenTunnelRequest{
+					Data: restapi.TunnelJsonData{
+						Type: "tunnel",
+						Attributes: restapi.TunnelAttributes{
+							SubdomainID: subdomainID,
+							Public_Key:  publicKey,
+						},
+					},
 				}
 				response, err := restAPI.CreateTunnelAPI(request)
 				if err != nil {
@@ -50,14 +72,12 @@ var httpCmd = &cobra.Command{
 				} else {
 					//res, _ := json.Marshal(response)
 					//fmt.Println(string(res))*/
-				tunnel.StartReverseTunnel(nil, PRIVATE_KEY_PATH, Port)
-				/*data := response.Data.Attributes
+					tunnel.StartReverseTunnel(&response, PRIVATE_KEY_PATH, Port)
 					if err != nil {
 						fmt.Println("Unable to setup reverse tunnel")
 					} else {
-						fmt.Println("localhost:" + strconv.Itoa(Port) + " is now accessible at " + data.Subdomain + ".orbtestenv.net")
 					}
-				}*/
+				}
 			} else {
 				fmt.Println("Port is not in range[1-65535")
 			}

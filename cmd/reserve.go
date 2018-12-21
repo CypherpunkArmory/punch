@@ -30,7 +30,15 @@ var reserveCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if utilities.CheckSubdomain(Subdomain) {
 			request := restapi.ReserveSubdomainRequest{
-				Subdomain: Subdomain,
+				restapi.SubdomainJsonData{
+					Type: "subdomain",
+					Attributes: restapi.SubdomainAttributes{
+						InUse:    false,
+						Name:     Subdomain,
+						Reserved: true,
+					},
+					ID: "",
+				},
 			}
 			restAPI := restapi.RestClient{
 				URL:    BASE_URL,

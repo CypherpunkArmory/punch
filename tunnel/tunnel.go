@@ -68,13 +68,13 @@ func StartReverseTunnel(conf *restapi.OpenTunnelResponse, keyPath string, localp
 	// remote SSH server
 	var serverEndpoint = Endpoint{
 		Host: "api.holepunch.io",
-		Port: 22,
+		Port: conf.Data.Attributes.SSHPort,
 	}
 
 	// remote forwarding port (on remote SSH server network)
 	var remoteEndpoint = Endpoint{
 		Host: "localhost",
-		Port: 8081,
+		Port: 3000,
 	}
 	// refer to https://godoc.org/golang.org/x/crypto/ssh for other authentication types
 	sshConfig := &ssh.ClientConfig{
