@@ -14,7 +14,7 @@ git:
 
 branches:
   only:
-  - /v\d+\.\d+[a-z]/
+  - /v\d+\.\d+/
   - master
 
 install: true
