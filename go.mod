@@ -3,6 +3,7 @@ module github.com/cypherpunkarmory/punch
 require (
 	github.com/dnaeon/go-vcr v1.0.1
 	github.com/google/jsonapi v0.0.0-20181016150055-d0428f63eb51
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/olekukonko/tablewriter v0.0.1
