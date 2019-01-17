@@ -1,7 +1,6 @@
 package tunnel
 
 import (
-	"HolePunchCLI/restapi"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -57,18 +57,21 @@ func privateKeyFile(file string) ssh.AuthMethod {
 	return ssh.PublicKeys(key)
 }
 
-func StartReverseTunnel(conf *restapi.OpenTunnelResponse, keyPath string, localport int) {
-
+func StartReverseTunnel(tunnelConfig *TunnelConfig) {
+	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
 	// local service to be forwarded
 	var localEndpoint = Endpoint{
 		Host: "0.0.0.0",
-		Port: localport,
+		Port: tunnelConfig.LocalPort,
 	}
-
+	var jumpServerEndpoint = Endpoint{
+		Host: "api.holepunch.io",
+		Port: 22,
+	}
 	// remote SSH server
 	var serverEndpoint = Endpoint{
-		Host: "api.holepunch.io",
-		Port: conf.Data.Attributes.SSHPort,
+		Host: tunnelConfig.TunnelEndpoint.IPAddress,
+		Port: sshPort,
 	}
 
 	// remote forwarding port (on remote SSH server network)
@@ -81,20 +84,30 @@ func StartReverseTunnel(conf *restapi.OpenTunnelResponse, keyPath string, localp
 		// SSH connection username
 		User: "punch",
 		Auth: []ssh.AuthMethod{
+			ssh.Password(""),
 			// put here your private key path
-			privateKeyFile(keyPath),
+			privateKeyFile(tunnelConfig.PrivateKeyPath),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-
+	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
+	if err != nil {
+		log.Fatalln(fmt.Printf("Dial INTO jump server error: %s", err))
+	}
 	// Connect to SSH remote server using serverEndpoint
-	serverConn, err := ssh.Dial("tcp", serverEndpoint.String(), sshConfig)
+	serverConn, err := jumpConn.Dial("tcp", serverEndpoint.String())
 	if err != nil {
 		log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
 	}
 
+	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sClient := ssh.NewClient(ncc, chans, reqs)
 	// Listen on remote server port
-	listener, err := serverConn.Listen("tcp", remoteEndpoint.String())
+	listener, err := sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
 		log.Fatalln(fmt.Printf("Listen open port ON remote server error: %s", err))
 	}
@@ -106,10 +119,12 @@ func StartReverseTunnel(conf *restapi.OpenTunnelResponse, keyPath string, localp
 
 	go func() {
 		<-c
+		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		listener.Close()
 		os.Exit(0)
 	}()
-	fmt.Println("Now ready to forward traffic")
+
+	fmt.Printf("Now forwarding localhost:%d to %s://%s.%s\n", tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointUrl)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint

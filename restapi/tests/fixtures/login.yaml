@@ -1,0 +1,27 @@
+---
+version: 1
+interactions:
+- request:
+    body: '{"email":"me@stephenprater.com","password":"secret"}'
+    form: {}
+    headers:
+      Content-Type:
+      - application/json
+    url: http://127.0.0.1:5000/login
+    method: POST
+  response:
+    body: "{\n  \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDU5Nzk1NDUsIm5iZiI6MTU0NTk3OTU0NSwianRpIjoiMjIzNDc2OTctZDU1ZC00MGY4LWFmYWMtZTg2NWQzNDRiOGUxIiwiZXhwIjoxNTQ1OTgwNDQ1LCJpZGVudGl0eSI6Im1lQHN0ZXBoZW5wcmF0ZXIuY29tIiwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIn0.I7Co0fzOnpddVBnEzyO7Wcvw2RqvEJ6-4uzlfSX-sGQ\",
+      \n  \"expires-in\": 3600, \n  \"refresh_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDU5Nzk1NDUsIm5iZiI6MTU0NTk3OTU0NSwianRpIjoiNzU5ZWIxZGEtNGNjYi00ZGMwLTlhYjktNWYwZjNiY2RkZDg5IiwiZXhwIjoxNTQ4NTcxNTQ1LCJpZGVudGl0eSI6Im1lQHN0ZXBoZW5wcmF0ZXIuY29tIiwidHlwZSI6InJlZnJlc2gifQ.aUkjIWXdB4PEOJXkItuMm91lyCV1Blfo46p-Esbl3q4\",
+      \n  \"token_type\": \"Bearer\"\n}\n"
+    headers:
+      Content-Length:
+      - "674"
+      Content-Type:
+      - application/json
+      Date:
+      - Fri, 28 Dec 2018 06:45:45 GMT
+      Server:
+      - Werkzeug/0.14.1 Python/3.7.1
+    status: 200 OK
+    code: 200
+    duration: ""

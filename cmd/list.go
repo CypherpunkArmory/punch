@@ -15,9 +15,12 @@
 package cmd
 
 import (
-	"HolePunchCLI/restapi"
 	"fmt"
+	"os"
+	"strconv"
 
+	"github.com/cypherpunkarmory/punch/restapi"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -27,18 +30,7 @@ var listCmd = &cobra.Command{
 	Short: "List your subdomains",
 	Long:  `List subdomains you have previously reserved and also subdomains that are currently in use by you`,
 	Run: func(cmd *cobra.Command, args []string) {
-		restAPI := restapi.RestClient{
-			URL:    BASE_URL,
-			APIKEY: API_KEY,
-		}
-		response, err := restAPI.SubdomainListAPI()
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			for _, elem := range response.Data {
-				fmt.Printf("Name: %s\tReserved: %t\tInUse: %t\n", elem.Attributes.Name, elem.Attributes.Reserved, elem.Attributes.InUse)
-			}
-		}
+		subdomainList()
 	},
 }
 
@@ -54,4 +46,37 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// listCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func subdomainList() {
+	response, err := restAPI.ListSubdomainAPI()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		printSubdomains(&response)
+	}
+}
+
+func printSubdomains(response *[]restapi.Subdomain) {
+	var data [][]string
+	for _, elem := range *response {
+		reserved := strconv.FormatBool(elem.Reserved)
+		inuse := strconv.FormatBool(elem.InUse)
+		data = append(data, []string{elem.Name, reserved, inuse})
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Subdomain Name", "Reserved", "In Use"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+
+	table.SetHeaderColor(tablewriter.Colors{tablewriter.Bold},
+		tablewriter.Colors{tablewriter.Bold},
+		tablewriter.Colors{tablewriter.Bold})
+
+	table.SetColumnColor(tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiWhiteColor},
+		tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiWhiteColor},
+		tablewriter.Colors{tablewriter.Bold, tablewriter.FgHiWhiteColor})
+
+	table.AppendBulk(data)
+	table.Render()
 }

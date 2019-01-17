@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "tunnel",
+  "definitions": {
+    "tunnel": {
+      "allOf": [
+        {
+          "$ref": "json-api.json#/definitions/data"
+        },
+        {
+          "properties": {
+            "attributes": {
+              "required": [
+                "job_id",
+                "ssh_port"
+              ],
+              "properties": {
+                "subdomain": {
+                  "type": "string"
+                },
+                "ssh_port":{
+                  "type":"string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+    "data": { "$ref": "#/definitions/tunnel" }
+  }
+}

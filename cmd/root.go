@@ -15,30 +15,41 @@
 package cmd
 
 import (
-	"HolePunchCLI/restapi"
 	"fmt"
 	"os"
+
+	"github.com/cypherpunkarmory/punch/restapi"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+var CfgFile string
 var Port int
 var Subdomain string
 var Verbose bool
 var REFRESH_TOKEN string
 var API_KEY string
-var BASE_URL string
+var API_ENDPOINT string
 var PUBLIC_KEY_PATH string
 var PRIVATE_KEY_PATH string
+var BASE_URL string
+
+var restAPI restapi.RestClient
 
 var rootCmd = &cobra.Command{
 	Use:   "punch",
 	Short: "Like a holepunch for your network",
 	Long:  `HolePunch`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		initConfig()
+		TryStartSession()
+	},
 }
+
+// I can't imagine a situation in which this fails - non login shells?
+var home, _ = homedir.Dir()
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
@@ -48,51 +59,87 @@ func Execute() {
 }
 
 func init() {
-	//var Verbose bool
-	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(&CfgFile, "config", "", "config file (default is ~/.punch)")
+	rootCmd.PersistentFlags().StringVar(&API_KEY, "apikey", "", "Your holepunch API key")
+	rootCmd.PersistentFlags().StringVar(&BASE_URL, "baseurl", "", "Holepunch server to use - (default is holepunch.io)")
+	rootCmd.PersistentFlags().StringVar(&API_ENDPOINT, "apiendpoint", "", "Holepunch server to use - (default is http://api.holepunch.io)")
+	rootCmd.PersistentFlags().StringVar(&PUBLIC_KEY_PATH, "publickeypath", "", "Path to your public keys - (~/.ssh)")
+	rootCmd.PersistentFlags().StringVar(&PRIVATE_KEY_PATH, "privatekeypath", "", "Path to your private keys - (~/.ssh)")
 
 	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
 	viper.BindPFlag("baseurl", rootCmd.PersistentFlags().Lookup("baseurl"))
+	viper.BindPFlag("apiendpoint", rootCmd.PersistentFlags().Lookup("apiendpoint"))
 	viper.BindPFlag("publickeypath", rootCmd.PersistentFlags().Lookup("publickeypath"))
 	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
-	cobra.OnInitialize(initConfig)
+	viper.SetDefault("config", "~/.punch.toml")
+	viper.SetDefault("baseurl", "holepunch.io")
+	viper.SetDefault("apiendpoint", "http://api.holepunch.io")
+	viper.SetDefault("publickeypath", "~/.ssh/holepunch_test_key.pub")
+	viper.SetDefault("privatekeypath", "~/.ssh/holepunch_test_key")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	viper.SetConfigType("toml")
+	viper.AddConfigPath(home)
+	viper.AddConfigPath(home + "/.config/holepunch/")
+	viper.SetConfigName(".punch")
 
-		// Search config in home directory with name ".HolePunch" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".HolePunch")
+	err := TryReadConfig()
+	if err != nil {
+		os.Exit(1)
 	}
+
 	viper.AutomaticEnv() // read in environment variables that match
+}
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		REFRESH_TOKEN = viper.GetString("REFRESH_TOKEN")
-		BASE_URL = viper.GetString("BASE_URL")
-		PUBLIC_KEY_PATH = viper.GetString("PUBLIC_KEY_PATH")
-		PRIVATE_KEY_PATH = viper.GetString("PRIVATE_KEY_PATH")
-		restAPI := restapi.RestClient{
-			URL: BASE_URL,
-		}
-		response, err := restAPI.StartSession(REFRESH_TOKEN)
-		if err != nil {
-
-		}
-		API_KEY = response.Access_Token
-	} else {
-		fmt.Println(err)
+func TryStartSession() {
+	if REFRESH_TOKEN == "" {
+		fmt.Println("You need to login using `punch login` first.")
+		os.Exit(1)
 	}
 
+	restAPI = restapi.RestClient{
+		URL: API_ENDPOINT,
+	}
+
+	// StartSession will set the internal state of the RestClient
+	// to the correct API key
+	_, err := restAPI.StartSession(REFRESH_TOKEN)
+
+	if err != nil {
+		fmt.Println("Error starting session")
+		fmt.Println("You need to login using `punch login` first.")
+		os.Exit(1)
+	}
+}
+
+func TryReadConfig() (err error) {
+	if CfgFile != "" {
+		// Use config file from the flag.
+		viper.SetConfigFile(CfgFile)
+		if _, err := os.Stat(CfgFile); os.IsNotExist(err) {
+			fmt.Println("Config file does not exist.")
+			return err
+		}
+	}
+
+	if err := viper.ReadInConfig(); err == nil {
+		REFRESH_TOKEN = viper.GetString("apikey")
+		BASE_URL = viper.GetString("baseurl")
+		PUBLIC_KEY_PATH = viper.GetString("publickeypath")
+		PRIVATE_KEY_PATH = viper.GetString("privatekeypath")
+		API_ENDPOINT = viper.GetString("apiendpoint")
+	} else {
+		err := viper.WriteConfigAs(home + "/.punch.toml")
+		if err != nil {
+			fmt.Println("Couldn't generate default config file")
+			return err
+		}
+
+		fmt.Println("Generated default config.")
+		_ = TryReadConfig()
+	}
+
+	return nil
 }

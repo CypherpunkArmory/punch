@@ -15,47 +15,39 @@
 package cmd
 
 import (
-	"HolePunchCLI/restapi"
-	"HolePunchCLI/utilities"
 	"fmt"
+
+	"github.com/cypherpunkarmory/punch/utilities"
 
 	"github.com/spf13/cobra"
 )
 
 // releaseCmd represents the release command
 var releaseCmd = &cobra.Command{
-	Use:   "release",
+	Use:   "release [subdomain]",
 	Short: "Release subdomain",
 	Long:  `Release a subdomain you have reserved`,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if utilities.CheckSubdomain(Subdomain) {
-			restAPI := restapi.RestClient{
-				URL:    BASE_URL,
-				APIKEY: API_KEY,
-			}
-			err := restAPI.ReleaseSubodmainAPI(Subdomain)
-			if err != nil {
-				fmt.Println(err.Error())
-			} else {
-				fmt.Println("Successfully released subdomain")
-			}
-		} else {
-			fmt.Println("Invalid Subdomain")
-		}
+		Subdomain = args[0]
+		release(Subdomain)
 	},
 }
 
 func init() {
 	subdomainCmd.AddCommand(releaseCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func release(Subdomain string) {
+	if utilities.CheckSubdomain(Subdomain) {
+		err := restAPI.ReleaseSubdomainAPI(Subdomain)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println("Successfully released subdomain")
+		}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// releaseCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// releaseCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-	releaseCmd.Flags().StringVarP(&Subdomain, "subdomain", "s", "", "")
+	} else {
+		fmt.Println("Invalid Subdomain")
+	}
 }

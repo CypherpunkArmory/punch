@@ -1,0 +1,53 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    form: {}
+    headers:
+      Authorization:
+      - Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDY0NjQ1MDQsIm5iZiI6MTU0NjQ2NDUwNCwianRpIjoiNjQxNWViYjEtMjc0Yi00YjFkLWEyZWMtOGM5NDExMWE3MjBhIiwiZXhwIjoxNTQ5MDU2NTA0LCJpZGVudGl0eSI6Im1lQHN0ZXBoZW5wcmF0ZXIuY29tIiwidHlwZSI6InJlZnJlc2gifQ.LsGa0Ri9tpZLKw3xdC6ouX8PO5NVtOkd3q9IqBnUGz0
+    url: http://127.0.0.1:5000/session
+    method: PUT
+  response:
+    body: "{\n  \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDY0NjcwMDQsIm5iZiI6MTU0NjQ2NzAwNCwianRpIjoiMGE4MDI0YWYtMTVlNy00MjI5LTk0ZjMtMzQwZDQ1MjM1M2YwIiwiZXhwIjoxNTQ2NDY3OTA0LCJpZGVudGl0eSI6Im1lQHN0ZXBoZW5wcmF0ZXIuY29tIiwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIn0.xcwBsIfnVwtkSOuPCEdBP-XRd42JtEfYGXSPnodpDqA\",
+      \n  \"expires-in\": 3600, \n  \"token_type\": \"Bearer\"\n}\n"
+    headers:
+      Content-Length:
+      - "371"
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 02 Jan 2019 22:10:04 GMT
+      Server:
+      - Werkzeug/0.14.1 Python/3.7.1
+    status: 200 OK
+    code: 200
+    duration: ""
+- request:
+    body: ""
+    form: {}
+    headers:
+      Authorization:
+      - Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE1NDY0NjcwMDQsIm5iZiI6MTU0NjQ2NzAwNCwianRpIjoiMGE4MDI0YWYtMTVlNy00MjI5LTk0ZjMtMzQwZDQ1MjM1M2YwIiwiZXhwIjoxNTQ2NDY3OTA0LCJpZGVudGl0eSI6Im1lQHN0ZXBoZW5wcmF0ZXIuY29tIiwiZnJlc2giOmZhbHNlLCJ0eXBlIjoiYWNjZXNzIn0.xcwBsIfnVwtkSOuPCEdBP-XRd42JtEfYGXSPnodpDqA
+    url: http://127.0.0.1:5000/subdomain
+    method: GET
+  response:
+    body: '{"data": [{"type": "subdomain", "id": "1", "attributes": {"in_use": true,
+      "name": "testy", "reserved": true}}, {"type": "subdomain", "id": "2", "attributes":
+      {"in_use": false, "name": "testacular", "reserved": true}}, {"type": "subdomain",
+      "id": "3", "attributes": {"in_use": false, "name": "testaroo", "reserved": true}},
+      {"type": "subdomain", "id": "4", "attributes": {"in_use": false, "name": "testypoo",
+      "reserved": true}}]}'
+    headers:
+      Content-Length:
+      - "428"
+      Content-Type:
+      - application/vnd.api+json
+      Date:
+      - Wed, 02 Jan 2019 22:10:04 GMT
+      Server:
+      - Werkzeug/0.14.1 Python/3.7.1
+    status: 200 OK
+    code: 200
+    duration: ""

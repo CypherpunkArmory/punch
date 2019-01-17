@@ -1,0 +1,5 @@
+apikey = ""
+baseurl = "http://api.holepunch.io"
+config = "~/.punchrc"
+privatekeypath = "~/.ssh"
+publickeypath = "~/.ssh"

@@ -1,121 +1,127 @@
 package restapi
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+
+	"github.com/google/jsonapi"
 )
 
-type SubdomainAttributes struct {
-	InUse    bool   `json:"in_use"`
-	Name     string `json:"name"`
-	Reserved bool   `json:"reserved"`
-}
-type SubdomainJsonData struct {
-	Type       string              `json:"type"`
-	Attributes SubdomainAttributes `json:"attributes"`
-	ID         string              `json:"id"`
-}
-type ReserveSubdomainRequest struct {
-	Data SubdomainJsonData `json:"data"`
-}
-type ReserveSubdomainResponse struct {
-	Data SubdomainJsonData `json:"data"`
-}
-type SubdomainListResponse struct {
-	Data []SubdomainJsonData `json:"data"`
+type Subdomain struct {
+	ID       string `jsonapi:"primary,subdomain"`
+	Name     string `jsonapi:"attr,name"`
+	InUse    bool   `jsonapi:"attr,inUse"`
+	Reserved bool   `jsonapi:"attr,reserved"`
 }
 
 //SubdomainListAPI get list of subdomains reserved
-func (restClient *RestClient) SubdomainListAPI() (SubdomainListResponse, error) {
-	responseBody := SubdomainListResponse{}
-	url := restClient.URL + "/subdomain"
-	client := &http.Client{}
+func (restClient *RestClient) ListSubdomainAPI() ([]Subdomain, error) {
+	subdomainList := []Subdomain{}
+	url := restClient.URL + "/subdomains"
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
-	resp, err := client.Do(req)
+	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		fmt.Println("error:", err)
 		panic(err)
 	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode > 399 {
 		//errorBody := ErrorResponse{}
-		errorBody := ResponseError{}
-		err = json.Unmarshal(body, &errorBody)
-		return responseBody, errorBody
+		errObject := new(jsonapi.ErrorObject)
+		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
+		return subdomainList, err
 	}
-
-	err = json.Unmarshal(body, &responseBody)
+	responseBody, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Subdomain)))
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Println(err)
+		responseBody := []Subdomain{}
 		return responseBody, http.ErrAbortHandler
 	}
-	return responseBody, nil
+	for _, subdomain := range responseBody {
+		s, _ := subdomain.(*Subdomain)
+		subdomainList = append(subdomainList, *s)
+	}
+
+	return subdomainList, nil
 }
 
 //ReserveSubdomainAPI calls holepunch web api to get reserve a subdomain
-func (restClient *RestClient) ReserveSubdomainAPI(requestBody ReserveSubdomainRequest) (ReserveSubdomainResponse, error) {
-	responseBody := ReserveSubdomainResponse{}
-	url := restClient.URL + "/subdomain"
-	jsonStr, err := json.Marshal(&requestBody)
+func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdomain, error) {
+	subdomainReturn := Subdomain{}
+	url := restClient.URL + "/subdomains"
+
+	request := Subdomain{
+		Name: subdomainName,
+	}
+	var outputBuffer bytes.Buffer
+	_ = bufio.NewWriter(&outputBuffer)
+	err := jsonapi.MarshalPayload(&outputBuffer, &request)
+
 	if err != nil {
 		fmt.Println("error:", err)
 		panic(err)
 	}
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
-	req.Header.Add("Content-Type", "application/json")
+
+	req, err := http.NewRequest("POST", url, &outputBuffer)
+	req.Header.Add("Content-Type", "application/vnd.api+json")
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
-	resp, err := client.Do(req)
+	resp, err := restClient.Client.Do(req)
+
 	if err != nil {
 		fmt.Println("error:", err)
 		panic(err)
 	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode > 399 {
 		//errorBody := ErrorResponse{}
-		errorBody := ResponseError{}
-		err = json.Unmarshal(body, &errorBody)
-		return responseBody, errorBody
+		errObject := new(jsonapi.ErrorObject)
+		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
+		return subdomainReturn, err
 	}
-
-	err = json.Unmarshal(body, &responseBody)
+	err = jsonapi.UnmarshalPayload(resp.Body, &subdomainReturn)
 	if err != nil {
-		fmt.Println("error:", err)
+		fmt.Println(err)
+		responseBody := Subdomain{}
 		return responseBody, http.ErrAbortHandler
 	}
-	return responseBody, nil
+	return subdomainReturn, nil
 }
 
 //ReleaseSubodmainAPI deletes tunnel
-func (restClient *RestClient) ReleaseSubodmainAPI(subdomainName string) error {
-	id, err := restClient.GetSubdomainID(subdomainName)
+func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
+	id, err := restClient.getSubdomainID(subdomainName)
+
 	if err != nil {
 		fmt.Println("error:", err)
 		panic(err)
 	}
+
 	if id == "" {
 		return errors.New("You do not own this subdomain")
 	}
+
 	url := restClient.URL + "/subdomain/" + id
-	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
-	resp, err := client.Do(req)
+	resp, err := restClient.Client.Do(req)
+
 	if err != nil {
 		fmt.Println("error:", err)
 		panic(err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode == 204 {
 		return nil
 	}
+
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode > 399 {
 		//errorBody := ErrorResponse{}
@@ -123,20 +129,73 @@ func (restClient *RestClient) ReleaseSubodmainAPI(subdomainName string) error {
 		err = json.Unmarshal(body, &errorBody)
 		return errorBody
 	}
+
 	return errors.New("Failed to delete")
 }
 
-func (restClient *RestClient) GetSubdomainID(subdomainName string) (string, error) {
-	responseBody, err := restClient.SubdomainListAPI()
+func (restClient *RestClient) getSubdomainID(subdomainName string) (string, error) {
+	url := restClient.URL + "/subdomains?filter[name]=" + subdomainName
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
+	resp, err := restClient.Client.Do(req)
+
 	if err != nil {
+		fmt.Println("error:", err)
 		panic(err)
 	}
-	SubdomainList := responseBody.Data
-	for _, domain := range SubdomainList {
-		if domain.Attributes.Name == subdomainName {
+	defer resp.Body.Close()
+	if resp.StatusCode > 399 {
+		//errorBody := ErrorResponse{}
+		errObject := new(jsonapi.ErrorObject)
+		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
+		return "-1", err
+	}
 
-			return domain.ID, nil
+	subdomains, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Subdomain)))
+	if err != nil {
+		fmt.Println(err)
+		return "-1", http.ErrAbortHandler
+	}
+	for _, subdomain := range subdomains {
+		s, _ := subdomain.(*Subdomain)
+		if s.ID != "" {
+			return s.ID, nil
+		} else {
+			return "", nil
 		}
 	}
+
+	return "", nil
+}
+func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, error) {
+	url := restClient.URL + "/subdomains/" + subdomainID
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
+	resp, err := restClient.Client.Do(req)
+
+	if err != nil {
+		fmt.Println("error:", err)
+		panic(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 399 {
+		//errorBody := ErrorResponse{}
+		errObject := new(jsonapi.ErrorObject)
+		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
+		return "-1", err
+	}
+	subdomain := new(Subdomain)
+	err = jsonapi.UnmarshalPayload(resp.Body, subdomain)
+	if err != nil {
+		fmt.Println(err)
+		return "-1", http.ErrAbortHandler
+	}
+
+	if subdomain.Name != "" {
+		return subdomain.Name, nil
+	} else {
+		return "", nil
+	}
+
 	return "", nil
 }

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package main // import "github.com/cypherpunkarmory/punch"
 
-import "HolePunchCLI/cmd"
+import "github.com/cypherpunkarmory/punch/cmd"
 
 func main() {
 	cmd.Execute()
