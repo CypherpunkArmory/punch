@@ -107,10 +107,11 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
-		errObject := new(jsonapi.ErrorObject)
-		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return tunnelReturn, err
+
+		buf, _ := ioutil.ReadAll(resp.Body)
+		errObject := ResponseError{}
+		err = json.Unmarshal(buf, &errObject)
+		return tunnelReturn, errObject
 	}
 	err = jsonapi.UnmarshalPayload(resp.Body, &tunnelReturn)
 	if err != nil {
@@ -177,7 +178,7 @@ func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) 
 		//errorBody := ErrorResponse{}
 		errObject := new(jsonapi.ErrorObject)
 		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return "", err
+		return "", errObject
 	}
 
 	tunnels, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Tunnel)))

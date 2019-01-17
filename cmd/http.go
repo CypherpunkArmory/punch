@@ -59,6 +59,7 @@ func tunnelHTTP() {
 			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, "http")
 			if err != nil {
 				fmt.Println(err.Error())
+				os.Exit(1)
 			} else {
 				if Subdomain == "" {
 					Subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
@@ -75,7 +76,6 @@ func tunnelHTTP() {
 				tunnel.StartReverseTunnel(&tunnelConfig)
 				if err != nil {
 					fmt.Println("Unable to setup reverse tunnel")
-				} else {
 				}
 			}
 		} else {

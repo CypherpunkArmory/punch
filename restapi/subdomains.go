@@ -81,9 +81,10 @@ func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdoma
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
 		//errorBody := ErrorResponse{}
-		errObject := new(jsonapi.ErrorObject)
-		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return subdomainReturn, err
+		buf, _ := ioutil.ReadAll(resp.Body)
+		errObject := ResponseError{}
+		err = json.Unmarshal(buf, &errObject)
+		return subdomainReturn, errObject
 	}
 	err = jsonapi.UnmarshalPayload(resp.Body, &subdomainReturn)
 	if err != nil {
@@ -146,9 +147,10 @@ func (restClient *RestClient) getSubdomainID(subdomainName string) (string, erro
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
 		//errorBody := ErrorResponse{}
-		errObject := new(jsonapi.ErrorObject)
-		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return "-1", err
+		buf, _ := ioutil.ReadAll(resp.Body)
+		errObject := ResponseError{}
+		err = json.Unmarshal(buf, &errObject)
+		return "-1", errObject
 	}
 
 	subdomains, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Subdomain)))
@@ -180,15 +182,16 @@ func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, erro
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
 		//errorBody := ErrorResponse{}
-		errObject := new(jsonapi.ErrorObject)
-		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return "-1", err
+		buf, _ := ioutil.ReadAll(resp.Body)
+		errObject := ResponseError{}
+		err = json.Unmarshal(buf, &errObject)
+		return "", errObject
 	}
 	subdomain := new(Subdomain)
 	err = jsonapi.UnmarshalPayload(resp.Body, subdomain)
 	if err != nil {
 		fmt.Println(err)
-		return "-1", http.ErrAbortHandler
+		return "", http.ErrAbortHandler
 	}
 
 	if subdomain.Name != "" {
