@@ -19,7 +19,6 @@ import (
 func handleClient(client net.Conn, remote net.Conn) {
 	defer client.Close()
 	chDone := make(chan bool)
-
 	// Start remote -> local data transfer
 	go func() {
 		_, err := io.Copy(client, remote)
@@ -148,7 +147,7 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 			log.Fatalln(err)
 		}
 
-		handleClient(client, local)
+		go handleClient(client, local)
 	}
 
 }
