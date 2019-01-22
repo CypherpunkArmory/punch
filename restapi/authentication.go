@@ -49,6 +49,7 @@ func (restClient *RestClient) StartSession(refresh_token string) (SessionRespons
 	}
 
 	restClient.APIKEY = responseBody.Access_Token
+	restClient.ResfreshToken = responseBody.Refresh_Token
 	return responseBody, nil
 }
 

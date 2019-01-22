@@ -128,7 +128,7 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 
 	if err != nil {
 		fmt.Println("error:", err)
-		panic(err)
+		return err
 	}
 
 	if id == "" {
@@ -175,9 +175,10 @@ func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) 
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
-		errObject := new(jsonapi.ErrorObject)
-		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
+
+		buf, _ := ioutil.ReadAll(resp.Body)
+		errObject := ResponseError{}
+		err = json.Unmarshal(buf, &errObject)
 		return "", errObject
 	}
 

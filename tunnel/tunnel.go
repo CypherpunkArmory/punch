@@ -89,27 +89,36 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 			privateKeyFile(tunnelConfig.PrivateKeyPath),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         0,
 	}
 	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
 	if err != nil {
+		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		log.Fatalln(fmt.Printf("Dial INTO jump server error: %s", err))
+		os.Exit(1)
 	}
 	// Connect to SSH remote server using serverEndpoint
 	serverConn, err := jumpConn.Dial("tcp", serverEndpoint.String())
 	if err != nil {
+		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
+		os.Exit(1)
 	}
 
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
 	if err != nil {
+		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		log.Fatal(err)
+		os.Exit(10)
 	}
 
 	sClient := ssh.NewClient(ncc, chans, reqs)
 	// Listen on remote server port
 	listener, err := sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
+		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		log.Fatalln(fmt.Printf("Listen open port ON remote server error: %s", err))
+		os.Exit(1)
 	}
 	defer listener.Close()
 
@@ -119,6 +128,7 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 
 	go func() {
 		<-c
+		tunnelConfig.RestApi.StartSession(tunnelConfig.RestApi.ResfreshToken)
 		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		listener.Close()
 		os.Exit(0)
