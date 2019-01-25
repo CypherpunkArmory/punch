@@ -12,7 +12,6 @@ ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 BINARY=punch
 VERSION=0.0.1
 BUILD=`git rev-parse HEAD`
-PLATFORMS=darwin linux windows
 ARCHITECTURES=386 amd64
 
 # Setup linker flags option for build that interoperate with variable names in src code
@@ -20,14 +19,22 @@ LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
 
 default: build
 
-all: clean build_all install
+all: clean windows linux macos
+
+windows:
+	$(foreach GOARCH, $(ARCHITECTURES), \
+	$(shell export GOOS=windows; export GOARCH=$(GOARCH); go build -o $(BINARY)-windows-$(GOARCH).exe))
+
+linux:
+	$(foreach GOARCH, $(ARCHITECTURES), \
+	$(shell export GOOS=linux; export GOARCH=$(GOARCH); go build -o $(BINARY)-linux-$(GOARCH)))
+
+macos:
+	$(foreach GOARCH, $(ARCHITECTURES), \
+	$(shell export GOOS=darwin; export GOARCH=$(GOARCH); go build -o $(BINARY)-darwin-$(GOARCH)))
 
 build:
 	go build ${LDFLAGS} -o ${BINARY}
-
-build_all:
-	$(foreach GOOS, $(PLATFORMS),\
-	$(foreach GOARCH, $(ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); go build -o $(BINARY)-$(GOOS)-$(GOARCH))))
 
 # Remove only what we've created
 clean:

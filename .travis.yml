@@ -27,7 +27,7 @@ before_script:
   - chmod 600 .netrc
 
 script:
-  - make build_all      
+  - make all     
 
 deploy:
   provider: releases
@@ -37,8 +37,8 @@ deploy:
     - "punch-darwin-386"
     - "punch-linux-amd64"
     - "punch-linux-386"
-    - "punch-windows-amd64"
-    - "punch-windows-386"
+    - "punch-windows-amd64.exe"
+    - "punch-windows-386.exe"
   skip_cleanup: true
   on:
     tags: true
