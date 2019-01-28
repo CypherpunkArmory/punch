@@ -82,6 +82,10 @@ func privateKeyFile(path string) ssh.AuthMethod {
 
 func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
+	remoteEndpointPort := 3000
+	if tunnelConfig.EndpointType == "https" {
+		remoteEndpointPort = 3001
+	}
 	// local service to be forwarded
 	var localEndpoint = Endpoint{
 		Host: "0.0.0.0",
@@ -100,7 +104,7 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 	// remote forwarding port (on remote SSH server network)
 	var remoteEndpoint = Endpoint{
 		Host: "localhost",
-		Port: 3000,
+		Port: remoteEndpointPort,
 	}
 	// refer to https://godoc.org/golang.org/x/crypto/ssh for other authentication types
 	sshConfig := &ssh.ClientConfig{

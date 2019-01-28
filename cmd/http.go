@@ -29,7 +29,7 @@ import (
 var httpCmd = &cobra.Command{
 	Use:   "http [port]",
 	Short: "Expose a web server on the port you specify",
-	Long:  `To expose a web server on port 80 punch http -p 80`,
+	Long:  `To expose a web server on port 80 punch http 80`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
