@@ -68,8 +68,7 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 	resp, err := restClient.Client.Do(req)
 
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return responseBody, err
 	}
 
 	defer resp.Body.Close()
@@ -85,7 +84,6 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
-		fmt.Println("error:", err)
 		return responseBody, http.ErrAbortHandler
 	}
 	restClient.RefreshToken = responseBody.Refresh_Token
