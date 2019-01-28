@@ -53,7 +53,6 @@ func tunnelHTTP() {
 			//TODO: fix path to recognize ~/
 			publicKey, err := utilities.GetPublicKey(PUBLIC_KEY_PATH)
 			if err != nil {
-				fmt.Println("Unable to find public key")
 				os.Exit(3)
 			}
 			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, "http")

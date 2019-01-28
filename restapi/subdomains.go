@@ -108,7 +108,7 @@ func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 		return errors.New("You do not own this subdomain")
 	}
 
-	url := restClient.URL + "/subdomain/" + id
+	url := restClient.URL + "/subdomains/" + id
 	req, err := http.NewRequest("DELETE", url, nil)
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
@@ -118,7 +118,6 @@ func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 		panic(err)
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode == 204 {
 		return nil
 	}

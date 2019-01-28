@@ -60,7 +60,6 @@ func tunnelHTTPS() {
 			}
 			publicKey, err := utilities.GetPublicKey(PUBLIC_KEY_PATH)
 			if err != nil {
-				fmt.Println("Unable to find public key")
 				os.Exit(3)
 			}
 

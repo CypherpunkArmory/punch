@@ -1,6 +1,8 @@
 package tunnel
 
 import (
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -9,8 +11,13 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
+
+	"github.com/cypherpunkarmory/punch/utilities"
 
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // From https://sosedoff.com/2015/05/25/ssh-port-forwarding-with-go.html
@@ -18,6 +25,7 @@ import (
 // Will use io.Copy - http://golang.org/pkg/io/#Copy
 func handleClient(client net.Conn, remote net.Conn) {
 	defer client.Close()
+	defer remote.Close()
 	chDone := make(chan bool)
 	// Start remote -> local data transfer
 	go func() {
@@ -40,20 +48,36 @@ func handleClient(client net.Conn, remote net.Conn) {
 	<-chDone
 }
 
-func privateKeyFile(file string) ssh.AuthMethod {
-	buffer, err := ioutil.ReadFile(file)
+func privateKeyFile(path string) ssh.AuthMethod {
+	path = utilities.FixFilePath(path)
+	buffer, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Fatalln(fmt.Sprintf("Cannot read SSH key file %s", file))
+		log.Fatalln(fmt.Sprintf("Cannot read SSH key file %s", path))
 		return nil
 	}
-
-	key, err := ssh.ParsePrivateKey(buffer)
+	block, rest := pem.Decode(buffer)
+	if len(rest) > 0 {
+		return nil
+	}
+	if !x509.IsEncryptedPEMBlock(block) {
+		key, err := ssh.ParsePrivateKey(buffer)
+		if err != nil {
+			fmt.Println(err)
+			log.Fatalln(fmt.Sprintf("Cannot parse SSH key file %s", path))
+			return nil
+		}
+		return ssh.PublicKeys(key)
+	}
+	fmt.Println("Your password: ")
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	key, err := ssh.ParsePrivateKeyWithPassphrase(buffer, bytePassword)
 	if err != nil {
 		fmt.Println(err)
-		log.Fatalln(fmt.Sprintf("Cannot parse SSH key file %s", file))
+		log.Fatalln(fmt.Sprintf("Cannot parse SSH key file %s", path))
 		return nil
 	}
 	return ssh.PublicKeys(key)
+
 }
 
 func StartReverseTunnel(tunnelConfig *TunnelConfig) {
@@ -83,27 +107,34 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 		// SSH connection username
 		User: "punch",
 		Auth: []ssh.AuthMethod{
-			ssh.Password(""),
-			// put here your private key path
 			privateKeyFile(tunnelConfig.PrivateKeyPath),
+			ssh.Password(""),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         0,
 	}
+
 	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
 	if err != nil {
 		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		log.Fatalln(fmt.Printf("Dial INTO jump server error: %s", err))
 		os.Exit(1)
 	}
+	defer jumpConn.Close()
 	// Connect to SSH remote server using serverEndpoint
-	serverConn, err := jumpConn.Dial("tcp", serverEndpoint.String())
+	var serverConn net.Conn
+	serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 	if err != nil {
-		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
-		os.Exit(1)
+		fmt.Println("Failed to connect. Trying again in 10 seconds")
+		time.Sleep(10 * time.Second)
+		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
+		if err != nil {
+			tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
+			log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
+			os.Exit(1)
+		}
 	}
-
+	defer serverConn.Close()
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
 	if err != nil {
 		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
@@ -123,11 +154,18 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 
 	// This catches CTRL C and closes the ssh
 	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c,
+		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
+		syscall.SIGINT,  // Ctrl+C
+		syscall.SIGQUIT, // Ctrl-\
+		syscall.SIGKILL, // "always fatal", "SIGKILL and SIGSTOP may not be caught by a program"
+		syscall.SIGHUP,  // "terminal is disconnected"
+	)
 
 	go func() {
 		<-c
-		tunnelConfig.RestApi.StartSession(tunnelConfig.RestApi.ResfreshToken)
+		tunnelConfig.RestApi.StartSession(tunnelConfig.RestApi.RefreshToken)
 		tunnelConfig.RestApi.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		listener.Close()
 		os.Exit(0)
@@ -139,15 +177,14 @@ func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		local, err := net.Dial("tcp", localEndpoint.String())
 		if err != nil {
-			log.Fatalln(fmt.Printf("Dial INTO local service error: %s", err))
 		}
 
 		client, err := listener.Accept()
 		if err != nil {
-			log.Fatalln(err)
 		}
-
-		go handleClient(client, local)
+		if err == nil && client != nil && local != nil {
+			go handleClient(client, local)
+		}
 	}
 
 }

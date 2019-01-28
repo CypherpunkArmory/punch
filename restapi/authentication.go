@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type SessionResponse struct {
@@ -28,8 +29,8 @@ func (restClient *RestClient) StartSession(refresh_token string) (SessionRespons
 
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		fmt.Println("Could not connect to the api server")
+		os.Exit(1)
 	}
 
 	defer resp.Body.Close()
@@ -47,9 +48,7 @@ func (restClient *RestClient) StartSession(refresh_token string) (SessionRespons
 		fmt.Println("error:", err)
 		return responseBody, http.ErrAbortHandler
 	}
-
 	restClient.APIKEY = responseBody.Access_Token
-	restClient.ResfreshToken = responseBody.Refresh_Token
 	return responseBody, nil
 }
 
@@ -89,7 +88,7 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 		fmt.Println("error:", err)
 		return responseBody, http.ErrAbortHandler
 	}
-
+	restClient.RefreshToken = responseBody.Refresh_Token
 	restClient.APIKEY = responseBody.Access_Token
 	return responseBody, nil
 }

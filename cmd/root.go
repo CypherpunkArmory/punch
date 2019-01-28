@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -39,9 +40,10 @@ var BASE_URL string
 var restAPI restapi.RestClient
 
 var rootCmd = &cobra.Command{
-	Use:   "punch",
-	Short: "Like a holepunch for your network",
-	Long:  `HolePunch`,
+	Version: "v0.2",
+	Use:     "punch",
+	Short:   "Like a holepunch for your network",
+	Long:    `HolePunch`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
 		TryStartSession()
@@ -71,11 +73,10 @@ func init() {
 	viper.BindPFlag("apiendpoint", rootCmd.PersistentFlags().Lookup("apiendpoint"))
 	viper.BindPFlag("publickeypath", rootCmd.PersistentFlags().Lookup("publickeypath"))
 	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
-	viper.SetDefault("config", "~/.punch.toml")
 	viper.SetDefault("baseurl", "holepunch.io")
 	viper.SetDefault("apiendpoint", "http://api.holepunch.io")
-	viper.SetDefault("publickeypath", "~/.ssh/holepunch_test_key.pub")
-	viper.SetDefault("privatekeypath", "~/.ssh/holepunch_test_key")
+	viper.SetDefault("publickeypath", "~/.ssh/holepunch_key.pub")
+	viper.SetDefault("privatekeypath", "~/.ssh/holepunch_key.pem")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -100,7 +101,8 @@ func TryStartSession() {
 	}
 
 	restAPI = restapi.RestClient{
-		URL: API_ENDPOINT,
+		URL:          API_ENDPOINT,
+		RefreshToken: REFRESH_TOKEN,
 	}
 
 	// StartSession will set the internal state of the RestClient
@@ -131,10 +133,17 @@ func TryReadConfig() (err error) {
 		PRIVATE_KEY_PATH = viper.GetString("privatekeypath")
 		API_ENDPOINT = viper.GetString("apiendpoint")
 	} else {
-		err := viper.WriteConfigAs(home + "/.punch.toml")
-		if err != nil {
-			fmt.Println("Couldn't generate default config file")
-			return err
+		if _, err := os.Stat(home + "/.punch.toml"); err != nil {
+			if os.IsNotExist(err) {
+				err := viper.WriteConfigAs(home + "/.punch.toml")
+				if err != nil {
+					fmt.Println("Couldn't generate default config file")
+					return err
+				}
+			}
+		} else {
+			fmt.Println("You have an issue in your current config")
+			return errors.New("Configuration Error")
 		}
 
 		fmt.Println("Generated default config.")

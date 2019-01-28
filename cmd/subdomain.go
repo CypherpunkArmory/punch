@@ -16,31 +16,58 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
+	"github.com/cypherpunkarmory/punch/restapi"
+	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
-// subdomainCmd represents the subdomain command
 var subdomainCmd = &cobra.Command{
 	Use:   "subdomain",
 	Short: "subdomain",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long:  `subdomain`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Try subdomain release, subdomain reserve or subdomain list")
 	},
 }
 
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List your subdomains",
+	Long:  `List subdomains you have previously reserved and also subdomains that are currently in use by you`,
+	Run: func(cmd *cobra.Command, args []string) {
+		subdomainList()
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(subdomainCmd)
+	subdomainCmd.AddCommand(listCmd)
+}
 
-	// Here you will define your flags and configuration settings.
+func subdomainList() {
+	response, err := restAPI.ListSubdomainAPI()
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		printSubdomains(&response)
+	}
+}
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// subdomainCmd.PersistentFlags().String("foo", "", "A help for foo")
+func printSubdomains(response *[]restapi.Subdomain) {
+	var data [][]string
+	for _, elem := range *response {
+		reserved := strconv.FormatBool(elem.Reserved)
+		inuse := strconv.FormatBool(elem.InUse)
+		data = append(data, []string{elem.Name, reserved, inuse})
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Subdomain Name", "Reserved", "In Use"})
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+
+	table.AppendBulk(data)
+	table.Render()
 }

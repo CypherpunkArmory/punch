@@ -132,7 +132,7 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 	}
 
 	if id == "" {
-		return errors.New("You do not own this subdomain")
+		return errors.New("You do not own this subdomain or it is not in use")
 	}
 
 	url := restClient.URL + "/tunnels/" + id
