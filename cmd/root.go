@@ -77,6 +77,10 @@ func init() {
 	viper.SetDefault("apiendpoint", "http://api.holepunch.io")
 	viper.SetDefault("publickeypath", "~/.ssh/holepunch_key.pub")
 	viper.SetDefault("privatekeypath", "~/.ssh/holepunch_key.pem")
+	rootCmd.SetHelpCommand(&cobra.Command{
+		Use:    "no-help",
+		Hidden: true,
+	})
 }
 
 // initConfig reads in config file and ENV variables if set.
