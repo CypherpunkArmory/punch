@@ -3,6 +3,8 @@ module github.com/cypherpunkarmory/punch
 require (
 	github.com/dnaeon/go-vcr v1.0.1
 	github.com/google/jsonapi v0.0.0-20181016150055-d0428f63eb51
+	github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163 // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
@@ -16,5 +18,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v0.0.0-20181112162635-ac52e6811b56
+	golang.org/x/arch v0.0.0-20181203225421-5a4828bb7045 // indirect
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
+	golang.org/x/tools v0.0.0-20190128232029-0a99049195af // indirect
 )

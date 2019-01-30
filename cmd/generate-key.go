@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,7 +33,12 @@ var generateKeyCmd = &cobra.Command{
 		} else {
 			path = ""
 		}
-		generateKey(path, fileName)
+		err := generateKey(path, fileName)
+		if err != nil {
+			fmt.Println("Failed to update config file")
+		} else {
+			fmt.Println("SSH keys have been generated and the config file has been updated")
+		}
 	},
 }
 
@@ -46,7 +52,16 @@ func generateKey(keyPath string, fileName string) error {
 	if err != nil {
 		return err
 	}
-
+	if keyPath == "" {
+		ex, err := os.Executable()
+		if err != nil {
+			panic(err)
+		}
+		keyPath = filepath.Dir(ex) + string(os.PathSeparator)
+	}
+	if !strings.HasSuffix(keyPath, string(os.PathSeparator)) {
+		keyPath = keyPath + string(os.PathSeparator)
+	}
 	// generate and write private key as PEM
 	privateKeyFile, err := os.Create(keyPath + fileName + ".pem")
 	defer privateKeyFile.Close()
@@ -66,16 +81,6 @@ func generateKey(keyPath string, fileName string) error {
 	err = ioutil.WriteFile(keyPath+fileName+".pub", ssh.MarshalAuthorizedKey(pub), 0655)
 	if err != nil {
 		return err
-	}
-	if keyPath == "" {
-		ex, err := os.Executable()
-		if err != nil {
-			panic(err)
-		}
-		keyPath = filepath.Dir(ex) + string(os.PathSeparator)
-	}
-	if !strings.HasSuffix(keyPath, string(os.PathSeparator)) {
-		keyPath = keyPath + string(os.PathSeparator)
 	}
 	viper.Set("privatekeypath", keyPath+fileName+".pem")
 	viper.Set("publickeypath", keyPath+fileName+".pub")

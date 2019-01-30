@@ -16,7 +16,7 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to holepunch",
 	Run: func(cmd *cobra.Command, args []string) {
-		login(args...)
+		login()
 	},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
@@ -31,7 +31,7 @@ func init() {
 	loginCmd.MarkFlagRequired("password")
 }
 
-func login(args ...string) {
+func login() {
 	restAPI := restapi.RestClient{
 		URL: API_ENDPOINT,
 	}
@@ -39,7 +39,7 @@ func login(args ...string) {
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {
-		fmt.Println("Login Failed")
+		fmt.Println("Login Failed: " + err.Error())
 		os.Exit(1)
 	}
 

@@ -46,7 +46,10 @@ var rootCmd = &cobra.Command{
 	Long:    `HolePunch`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
-		TryStartSession()
+		err := TryStartSession()
+		if err != nil {
+			os.Exit(1)
+		}
 	},
 }
 
@@ -98,10 +101,10 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 }
 
-func TryStartSession() {
+func TryStartSession() error {
 	if REFRESH_TOKEN == "" {
 		fmt.Println("You need to login using `punch login` first.")
-		os.Exit(1)
+		return errors.New("No refresh token")
 	}
 
 	restAPI = restapi.RestClient{
@@ -116,8 +119,9 @@ func TryStartSession() {
 	if err != nil {
 		fmt.Println("Error starting session")
 		fmt.Println("You need to login using `punch login` first.")
-		os.Exit(1)
+		return errors.New("Error starting session")
 	}
+	return nil
 }
 
 func TryReadConfig() (err error) {

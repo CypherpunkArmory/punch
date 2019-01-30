@@ -35,9 +35,8 @@ func TestRootTryReadConfigWithoutOverride(t *testing.T) {
 }
 
 func TestRootTryStartSession(t *testing.T) {
-	cmd.BASE_URL = "http://notathing.url"
+	cmd.API_ENDPOINT = "http://0.0.0.0:5000"
 
 	err := cmd.TryStartSession()
-
 	require.NotNil(t, err)
 }
