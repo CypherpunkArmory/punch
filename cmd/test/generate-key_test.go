@@ -1,4 +1,4 @@
-package test
+package cmdtest
 
 import (
 	"io/ioutil"
@@ -12,11 +12,11 @@ import (
 )
 
 func TestGenerateKeyNoParams(t *testing.T) {
-	defer CreateConfig(t)()
+	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../punch", "generate-key", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "generate-key", "--config", CONFIG_PATH)
 	p.Run()
-	keyPath := "../"
+	keyPath := "../../"
 	pem, err := ioutil.ReadFile(keyPath + "holepunch_key.pem")
 	if err != nil {
 		t.Fatal("Pem file not written" + keyPath)
@@ -40,11 +40,11 @@ func TestGenerateKeyNoParams(t *testing.T) {
 	require.Equal(t, p.Stdout(), "SSH keys have been generated and the config file has been updated\n")
 }
 func TestGenerateKeyWithName(t *testing.T) {
-	defer CreateConfig(t)()
+	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../punch", "generate-key", "-n", "test_key", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "generate-key", "-n", "test_key", "--config", CONFIG_PATH)
 	p.Run()
-	keyPath := "../"
+	keyPath := "../../"
 	pem, err := ioutil.ReadFile(keyPath + "test_key.pem")
 	if err != nil {
 		t.Fatal("Pem file not written" + keyPath)
@@ -68,11 +68,11 @@ func TestGenerateKeyWithName(t *testing.T) {
 	require.Equal(t, p.Stdout(), "SSH keys have been generated and the config file has been updated\n")
 }
 func TestGenerateKeyWithLocation(t *testing.T) {
-	defer CreateConfig(t)()
+	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../punch", "generate-key", "~/.ssh", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "generate-key", "/tmp", "--config", CONFIG_PATH)
 	p.Run()
-	keyPath := utilities.FixFilePath("~/.ssh")
+	keyPath := utilities.FixFilePath("/tmp")
 	pem, err := ioutil.ReadFile(keyPath + "/holepunch_key.pem")
 	if err != nil {
 		t.Fatal("Pem file not written")

@@ -1,4 +1,4 @@
-package test
+package cmdtest
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 var CONFIG_PATH = "/tmp/punch.toml"
 
-func CreateConfig(t *testing.T) func() {
+func createConfig(t *testing.T) func() {
 	if _, err := os.Stat(CONFIG_PATH); os.IsNotExist(err) {
 		os.Create(CONFIG_PATH)
 		initConfig()
@@ -36,15 +36,15 @@ func initConfig() {
 }
 
 func configLogin(t *testing.T) {
-	p := testcli.Command("../punch", "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", CONFIG_PATH)
 	p.Run()
 }
 
 func reserveSubdomain(t *testing.T, subdomain string) func() {
-	p := testcli.Command("../punch", "subdomain", "reserve", subdomain, "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "subdomain", "reserve", subdomain, "--config", CONFIG_PATH)
 	p.Run()
 	return func() {
-		p := testcli.Command("../punch", "subdomain", "release", subdomain, "--config", CONFIG_PATH)
+		p := testcli.Command("../../punch", "subdomain", "release", subdomain, "--config", CONFIG_PATH)
 		p.Run()
 	}
 }

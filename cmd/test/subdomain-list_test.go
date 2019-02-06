@@ -1,4 +1,4 @@
-package test
+package cmdtest
 
 import (
 	"testing"
@@ -8,9 +8,9 @@ import (
 )
 
 func TestSubdomainListNoSubdomains(t *testing.T) {
-	defer CreateConfig(t)()
+	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
 }
@@ -22,10 +22,10 @@ func equalsEmptySubdomainList(output string) bool {
 		"+----------------+----------+--------+\n"
 }
 func TestSubdomainListWithSubdomains(t *testing.T) {
-	defer CreateConfig(t)()
+	defer createConfig(t)()
 	configLogin(t)
 	defer reserveSubdomain(t, "testdomain")()
-	p := testcli.Command("../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
 	p.Run()
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 }
