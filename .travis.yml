@@ -27,7 +27,7 @@ before_script:
   - chmod 600 .netrc
 
 script:
-  - make all     
+  - make REPO_NAME=${REPO_NAME} APIToken=${API_TOKEN} all     
 
 deploy:
   provider: releases

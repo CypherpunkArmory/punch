@@ -6,11 +6,12 @@
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 BINARY=punch
-VERSION=0.0.1
+REPO_NAME= 
+APIToken= 
 ARCHITECTURES=386 amd64
 
 # Setup linker flags option for build that interoperate with variable names in src code
-LDFLAGS=-ldflags "-s -w -X main.Version=${VERSION}"
+LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/cmd.GithubRepo=$(REPO_NAME) -X github.com/cypherpunkarmory/punch/cmd.APIToken=$(APIToken) -s -w"
 
 default: build
 

@@ -40,7 +40,7 @@ var BASE_URL string
 var restAPI restapi.RestClient
 
 var rootCmd = &cobra.Command{
-	Version: "v0.2",
+	Version: "v0.0.1",
 	Use:     "punch",
 	Short:   "Like a holepunch for your network",
 	Long:    `HolePunch`,
