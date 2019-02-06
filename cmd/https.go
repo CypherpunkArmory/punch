@@ -62,15 +62,15 @@ func tunnelHTTPS() {
 			if err != nil {
 				os.Exit(3)
 			}
-
-			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, "https")
+			protocol := []string{"https"}
+			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, protocol)
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {
 				tunnelConfig := tunnel.TunnelConfig{
 					RestApi:        restAPI,
 					TunnelEndpoint: response,
-					EndpointType:   "https",
+					EndpointType:   protocol,
 					PrivateKeyPath: PRIVATE_KEY_PATH,
 					EndpointUrl:    "holepunch.io",
 					LocalPort:      Port,

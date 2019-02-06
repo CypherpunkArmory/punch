@@ -12,7 +12,7 @@ type TunnelConfig struct {
 	PrivateKeyPath string
 	LocalPort      int
 	Subdomain      string
-	EndpointType   string
+	EndpointType   []string
 	EndpointUrl    string
 }
 type Endpoint struct {

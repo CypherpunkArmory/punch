@@ -16,7 +16,7 @@ import (
 
 type Tunnel struct {
 	ID        string     `jsonapi:"primary,tunnel"`
-	Port      string     `jsonapi:"attr,port,omitempty"`
+	Port      []string   `jsonapi:"attr,port,omitempty"`
 	PublicKey string     `jsonapi:"attr,sshKey,omitempty"`
 	SSHPort   string     `jsonapi:"attr,sshPort,omitempty"`
 	IPAddress string     `jsonapi:"attr,ipAddress,omitempty"`
@@ -56,7 +56,7 @@ func (restClient *RestClient) listTunnelAPI() ([]Tunnel, error) {
 }
 
 //CreateTunnelAPI calls holepunch web api to get tunnel details
-func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string, protocol string) (Tunnel, error) {
+func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string, protocol []string) (Tunnel, error) {
 	tunnelReturn := Tunnel{}
 	var outputBuffer bytes.Buffer
 	if subdomain != "" {

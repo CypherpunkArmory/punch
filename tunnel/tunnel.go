@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/cypherpunkarmory/punch/utilities"
-
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -83,7 +82,8 @@ func privateKeyFile(path string) ssh.AuthMethod {
 func StartReverseTunnel(tunnelConfig *TunnelConfig) {
 	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
 	remoteEndpointPort := 3000
-	if tunnelConfig.EndpointType == "https" {
+	//TODO: fix when creating punch it
+	if tunnelConfig.EndpointType[0] == "https" {
 		remoteEndpointPort = 3001
 	}
 	// local service to be forwarded

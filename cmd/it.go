@@ -59,7 +59,8 @@ func tunnelMultiple() {
 			if err != nil {
 				os.Exit(3)
 			}
-			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, "http")
+			protocol := []string{"http"}
+			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, protocol)
 			if err != nil {
 				fmt.Println(err.Error())
 				os.Exit(1)
@@ -70,7 +71,7 @@ func tunnelMultiple() {
 				tunnelConfig := tunnel.TunnelConfig{
 					RestApi:        restAPI,
 					TunnelEndpoint: response,
-					EndpointType:   "http",
+					EndpointType:   protocol,
 					PrivateKeyPath: PRIVATE_KEY_PATH,
 					EndpointUrl:    BASE_URL,
 					LocalPort:      Port,
