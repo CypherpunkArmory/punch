@@ -17,7 +17,7 @@ func CheckSubdomain(subdomain string) bool {
 
 //CheckPort checks if port is in correct range
 func CheckPort(port int) bool {
-	return 0 < port && port < 65535
+	return 0 < port && port < 65536
 }
 
 func FixFilePath(path string) string {
@@ -33,7 +33,7 @@ func GetPublicKey(path string) (string, error) {
 	path = FixFilePath(path)
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Print("Unable to find public key. Either set correct path in .punch.toml or generate a key using `punch generate-key`")
+		fmt.Println("Unable to find public key. Either set correct path in .punch.toml or generate a key using `punch generate-key`")
 		return "", err
 	}
 	return string(buf), nil

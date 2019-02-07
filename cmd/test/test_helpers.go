@@ -1,7 +1,6 @@
 package cmdtest
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -12,9 +11,10 @@ import (
 var CONFIG_PATH = "/tmp/punch.toml"
 
 func createConfig(t *testing.T) func() {
+	t.Helper()
 	if _, err := os.Stat(CONFIG_PATH); os.IsNotExist(err) {
 		os.Create(CONFIG_PATH)
-		initConfig()
+		initTestConfig(t)
 	}
 	return func() {
 		err := os.Remove(CONFIG_PATH)
@@ -23,24 +23,27 @@ func createConfig(t *testing.T) func() {
 		}
 	}
 }
-func initConfig() {
+func initTestConfig(t *testing.T) {
+	t.Helper()
 	viper.SetDefault("apikey", "")
 	viper.SetDefault("baseurl", "holepunch.io")
 	viper.SetDefault("apiendpoint", "http://0.0.0.0:5000")
-	viper.SetDefault("publickeypath", "~/.ssh/holepunch_key.pub")
-	viper.SetDefault("privatekeypath", "~/.ssh/holepunch_key.pem")
+	viper.SetDefault("publickeypath", "/tmp/holepunch_key.pub")
+	viper.SetDefault("privatekeypath", "/tmp/holepunch_key.pem")
 	err := viper.WriteConfigAs(CONFIG_PATH)
 	if err != nil {
-		fmt.Println("Couldn't generate default config file")
+		t.Fatalf("Couldn't generate config file")
 	}
 }
 
 func configLogin(t *testing.T) {
+	t.Helper()
 	p := testcli.Command("../../punch", "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", CONFIG_PATH)
 	p.Run()
 }
 
 func reserveSubdomain(t *testing.T, subdomain string) func() {
+	t.Helper()
 	p := testcli.Command("../../punch", "subdomain", "reserve", subdomain, "--config", CONFIG_PATH)
 	p.Run()
 	return func() {
