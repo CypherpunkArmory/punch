@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/cypherpunkarmory/punch/restapi"
 
@@ -95,7 +96,7 @@ func initConfig() {
 	if configPath == "" {
 		configPath = home
 	}
-	configPath = configPath + "/.config/holepunch/"
+	configPath = filepath.Join(configPath, ".config", "holepunch")
 	viper.AddConfigPath(configPath)
 	viper.SetConfigName(".punch")
 
@@ -147,9 +148,10 @@ func TryReadConfig() (err error) {
 		PRIVATE_KEY_PATH = viper.GetString("privatekeypath")
 		API_ENDPOINT = viper.GetString("apiendpoint")
 	} else {
-		if _, err := os.Stat(home + "/.punch.toml"); err != nil {
+		if _, err := os.Stat(configPath + string(os.PathSeparator) + ".punch.toml"); err != nil {
 			if os.IsNotExist(err) {
-				err := viper.WriteConfigAs(configPath + ".punch.toml")
+				os.MkdirAll(configPath, os.ModePerm)
+				err := viper.WriteConfigAs(configPath + string(os.PathSeparator) + ".punch.toml")
 				if err != nil {
 					fmt.Println("Couldn't generate default config file")
 					return err
