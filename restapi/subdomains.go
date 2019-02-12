@@ -195,9 +195,6 @@ func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, erro
 
 	if subdomain.Name != "" {
 		return subdomain.Name, nil
-	} else {
-		return "", nil
 	}
-
 	return "", nil
 }

@@ -7,6 +7,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestBadSubdomainReserve(t *testing.T) {
+	defer createConfig(t)()
+	configLogin(t)
+	p := testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p.Run()
+	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
+	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain*/*/*/$$", "--config", CONFIG_PATH)
+	p.Run()
+
+	require.Equal(t, p.Stdout(), "Invalid Subdomain\n")
+	p = testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p.Run()
+	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
+}
 func TestSubdomainReserve(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)

@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/cypherpunkarmory/punch/utilities"
 
@@ -38,15 +39,15 @@ func init() {
 }
 
 func cleanup(Subdomain string) {
-	if utilities.CheckSubdomain(Subdomain) {
-		err := restAPI.DeleteTunnelAPI(Subdomain)
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println("Successfully closed tunnel")
-		}
-
-	} else {
+	if !utilities.CheckSubdomain(Subdomain) {
 		fmt.Println("Invalid Subdomain")
+		os.Exit(1)
 	}
+	err := restAPI.DeleteTunnelAPI(Subdomain)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Successfully closed tunnel")
+
 }

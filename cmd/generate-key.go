@@ -26,19 +26,17 @@ var generateKeyCmd = &cobra.Command{
 	Long:  `Generates a pub/priv keypair to specified location otherwise defaults to current directory`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var path string
+		path := ""
 		if len(args) > 0 {
 			path = args[0]
 			path = utilities.FixFilePath(path)
-		} else {
-			path = ""
 		}
 		err := generateKey(path, fileName)
 		if err != nil {
 			fmt.Println("Failed to update config file")
-		} else {
-			fmt.Println("SSH keys have been generated and the config file has been updated")
+			os.Exit(1)
 		}
+		fmt.Println("SSH keys have been generated and the config file has been updated")
 	},
 }
 
@@ -72,7 +70,6 @@ func generateKey(keyPath string, fileName string) error {
 	if err := pem.Encode(privateKeyFile, privateKeyPEM); err != nil {
 		return err
 	}
-
 	// generate and write public key
 	pub, err := ssh.NewPublicKey(&privateKey.PublicKey)
 	if err != nil {

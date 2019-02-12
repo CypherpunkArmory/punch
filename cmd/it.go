@@ -52,41 +52,41 @@ func init() {
 }
 
 func tunnelMultiple() {
-	if Subdomain == "" || utilities.CheckSubdomain(Subdomain) {
-		if utilities.CheckPort(Port) {
-			//TODO: fix path to recognize ~/
-			publicKey, err := utilities.GetPublicKey(PUBLIC_KEY_PATH)
-			if err != nil {
-				os.Exit(3)
-			}
-			protocol := []string{"http"}
-			response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, protocol)
-			if err != nil {
-				fmt.Println(err.Error())
-				os.Exit(1)
-			} else {
-				if Subdomain == "" {
-					Subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
-				}
-				tunnelConfig := tunnel.TunnelConfig{
-					RestApi:        restAPI,
-					TunnelEndpoint: response,
-					EndpointType:   protocol,
-					PrivateKeyPath: PRIVATE_KEY_PATH,
-					EndpointUrl:    BASE_URL,
-					LocalPort:      Port,
-					Subdomain:      Subdomain,
-				}
-				tunnel.StartReverseTunnel(&tunnelConfig)
-				if err != nil {
-					fmt.Println("Unable to setup reverse tunnel")
-				}
-			}
-		} else {
-			fmt.Println("Port is not in range[1-65535")
-		}
-	} else {
+	if Subdomain != "" && !utilities.CheckSubdomain(Subdomain) {
 		fmt.Println("Invalid Subdomain")
+		os.Exit(1)
+	}
+	if !utilities.CheckPort(Port) {
+		fmt.Println("Port is not in range[1-65535")
+		os.Exit(1)
+	}
+
+	publicKey, err := utilities.GetPublicKey(PUBLIC_KEY_PATH)
+	if err != nil {
+		os.Exit(3)
+	}
+
+	protocol := []string{"http"}
+	response, err := restAPI.CreateTunnelAPI(Subdomain, publicKey, protocol)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	if Subdomain == "" {
+		Subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
+	}
+	tunnelConfig := tunnel.TunnelConfig{
+		RestApi:        restAPI,
+		TunnelEndpoint: response,
+		EndpointType:   protocol,
+		PrivateKeyPath: PRIVATE_KEY_PATH,
+		EndpointUrl:    BASE_URL,
+		LocalPort:      Port,
+		Subdomain:      Subdomain,
+	}
+	tunnel.StartReverseTunnel(&tunnelConfig)
+	if err != nil {
+		fmt.Println("Unable to setup reverse tunnel")
 	}
 
 }

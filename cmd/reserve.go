@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/cypherpunkarmory/punch/utilities"
 
@@ -40,15 +41,15 @@ func init() {
 }
 
 func reserve() {
-	if utilities.CheckSubdomain(Subdomain) {
-		response, err := restAPI.ReserveSubdomainAPI(Subdomain)
-		if err != nil {
-			fmt.Println(err.Error())
-		} else {
-			fmt.Println("Successfully reserved subdomain " + response.Name)
-		}
-	} else {
+	if !utilities.CheckSubdomain(Subdomain) {
 		fmt.Println("Invalid Subdomain")
+		os.Exit(1)
 	}
 
+	response, err := restAPI.ReserveSubdomainAPI(Subdomain)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Successfully reserved subdomain " + response.Name)
 }

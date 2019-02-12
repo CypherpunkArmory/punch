@@ -12,23 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main // import "github.com/cypherpunkarmory/punch"
+package main
 
 import "github.com/cypherpunkarmory/punch/cmd"
 
 func main() {
 	cmd.Execute()
 }
-
-//this is to setup simple-proxy
-//sudo apt-get update
-//sudo apt install make(only need to do if compiling code on system)
-//sudo apt-get install golang-go
-// cd server
-//go get
-//cd ..
-//make
-//sudo ./simpleproxy
-//sudo apt install docker-compose
-//rysnced simple-proxy and holepunch api
-//added consul expose port for something not in docker-compose file
