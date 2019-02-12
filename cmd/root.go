@@ -38,6 +38,7 @@ var PRIVATE_KEY_PATH string
 var BASE_URL string
 
 var restAPI restapi.RestClient
+var configPath string
 
 var rootCmd = &cobra.Command{
 	Version: "v0.0.1",
@@ -89,8 +90,13 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	viper.SetConfigType("toml")
-	viper.AddConfigPath(home)
-	viper.AddConfigPath(home + "/.config/holepunch/")
+	//https://0x46.net/thoughts/2019/02/01/dotfile-madness/
+	configPath = os.Getenv("XDG_CONFIG_HOME")
+	if configPath == "" {
+		configPath = home
+	}
+	configPath = configPath + "/.config/holepunch/"
+	viper.AddConfigPath(configPath)
 	viper.SetConfigName(".punch")
 
 	err := TryReadConfig()
@@ -143,7 +149,7 @@ func TryReadConfig() (err error) {
 	} else {
 		if _, err := os.Stat(home + "/.punch.toml"); err != nil {
 			if os.IsNotExist(err) {
-				err := viper.WriteConfigAs(home + "/.punch.toml")
+				err := viper.WriteConfigAs(configPath + ".punch.toml")
 				if err != nil {
 					fmt.Println("Couldn't generate default config file")
 					return err
