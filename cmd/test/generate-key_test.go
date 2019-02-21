@@ -14,7 +14,7 @@ import (
 func TestGenerateKeyNoParams(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../../punch", "generate-key", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "generate-key", "--config", configPath)
 	p.Run()
 	keyPath := "../../"
 	pem, err := ioutil.ReadFile(keyPath + "holepunch_key.pem")
@@ -42,7 +42,7 @@ func TestGenerateKeyNoParams(t *testing.T) {
 func TestGenerateKeyWithName(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../../punch", "generate-key", "-n", "test_key", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "generate-key", "-n", "test_key", "--config", configPath)
 	p.Run()
 	keyPath := "../../"
 	pem, err := ioutil.ReadFile(keyPath + "test_key.pem")
@@ -70,7 +70,7 @@ func TestGenerateKeyWithName(t *testing.T) {
 func TestGenerateKeyWithLocation(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../../punch", "generate-key", "/tmp", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "generate-key", "/tmp", "--config", configPath)
 	p.Run()
 	keyPath := utilities.FixFilePath("/tmp")
 	pem, err := ioutil.ReadFile(keyPath + "/holepunch_key.pem")

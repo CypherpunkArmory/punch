@@ -23,8 +23,9 @@ var fileName string
 var generateKeyCmd = &cobra.Command{
 	Use:   "generate-key <directory>",
 	Short: "Generates a pub/priv keypair to specified location",
-	Long:  `Generates a pub/priv keypair to specified location otherwise defaults to current directory`,
-	Args:  cobra.MaximumNArgs(1),
+	Long: `Generates a pub/priv keypair to specified location otherwise defaults to current directory.
+	You can also specify a name for it using the -n flag`,
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		path := ""
 		if len(args) > 0 {

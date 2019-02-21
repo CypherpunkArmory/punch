@@ -11,30 +11,30 @@ func TestSubdomainRelease(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
 	//Make sure list is empty
-	p := testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
 	//Make sure subdomain was reserved
-	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain", "--config", CONFIG_PATH)
+	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain", "--config", configPath)
 	p.Run()
-	p = testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p = testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 	//Make sure subdomain was deleted
-	p = testcli.Command("../../punch", "subdomain", "release", "testdomain", "--config", CONFIG_PATH)
+	p = testcli.Command("../../punch", "subdomain", "release", "testdomain", "--config", configPath)
 	p.Run()
 	require.Equal(t, p.Stdout(), "Successfully released subdomain\n")
-	p = testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p = testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
 }
 func TestUnownedSubdomainRelease(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../../punch", "subdomain", "list", "--config", CONFIG_PATH)
+	p := testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
-	out := testcli.Command("../../punch", "subdomain", "release", "testdomain", "--config", CONFIG_PATH)
+	out := testcli.Command("../../punch", "subdomain", "release", "testdomain", "--config", configPath)
 	out.Run()
 
 	require.Equal(t, out.Stdout(), "You do not own this subdomain\n")

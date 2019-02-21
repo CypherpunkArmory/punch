@@ -4,16 +4,14 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 
 	"github.com/google/jsonapi"
 )
 
+//Tunnel JSONAPI response of tunnel object
 type Tunnel struct {
 	ID        string     `jsonapi:"primary,tunnel"`
 	Port      []string   `jsonapi:"attr,port,omitempty"`
@@ -31,21 +29,17 @@ func (restClient *RestClient) listTunnelAPI() ([]Tunnel, error) {
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return nil, errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		errObject := new(jsonapi.ErrorObject)
 		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return tunnelList, err
+		return tunnelList, errObject
 	}
 	responseBody, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Tunnel)))
 	if err != nil {
-		fmt.Println(err.Error())
-		responseBody := []Tunnel{}
-		return responseBody, http.ErrAbortHandler
+		return tunnelList, errorUnableToParse
 	}
 	for _, tunnel := range responseBody {
 		t, _ := tunnel.(*Tunnel)
@@ -62,12 +56,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 	if subdomain != "" {
 		subdomainID, err := restClient.getSubdomainID(subdomain)
 		if err != nil {
-			fmt.Println("Cant connect to holepunch api")
-			os.Exit(0)
-		}
-		if subdomainID == "" {
-			fmt.Println("You do not own this domain")
-			os.Exit(0)
+			return tunnelReturn, errorUnownedSubdomain
 		}
 		request := Tunnel{
 			Port:      protocol,
@@ -79,8 +68,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 		_ = bufio.NewWriter(&outputBuffer)
 		err = jsonapi.MarshalPayload(&outputBuffer, &request)
 		if err != nil {
-			fmt.Println("error:", err)
-			panic(err)
+			return tunnelReturn, errorUnableToParse
 		}
 	} else {
 		request := Tunnel{
@@ -90,10 +78,8 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 
 		_ = bufio.NewWriter(&outputBuffer)
 		err := jsonapi.MarshalPayload(&outputBuffer, &request)
-
 		if err != nil {
-			fmt.Println("error:", err)
-			panic(err)
+			return tunnelReturn, errorUnableToParse
 		}
 	}
 	url := restClient.URL + "/tunnels"
@@ -102,12 +88,10 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return tunnelReturn, errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-
 		buf, _ := ioutil.ReadAll(resp.Body)
 		errObject := ResponseError{}
 		err = json.Unmarshal(buf, &errObject)
@@ -115,9 +99,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 	}
 	err = jsonapi.UnmarshalPayload(resp.Body, &tunnelReturn)
 	if err != nil {
-		fmt.Println(err)
-		responseBody := Tunnel{}
-		return responseBody, http.ErrAbortHandler
+		return tunnelReturn, errorUnableToParse
 	}
 	return tunnelReturn, nil
 }
@@ -125,14 +107,8 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 //DeleteTunnelAPI deletes tunnel
 func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 	id, err := restClient.getTunnelID(subdomainName)
-
 	if err != nil {
-		fmt.Println("error:", err)
 		return err
-	}
-
-	if id == "" {
-		return errors.New("You do not own this subdomain or it is not in use")
 	}
 
 	url := restClient.URL + "/tunnels/" + id
@@ -141,14 +117,9 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("error:", err)
-		return err
+		return errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
-	if err != nil {
-		fmt.Println("error:", err)
-		return err
-	}
 
 	if resp.StatusCode == 204 {
 		return nil
@@ -156,13 +127,12 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		errorBody := ResponseError{}
 		err = json.Unmarshal(body, &errorBody)
 		return errorBody
 	}
 
-	return errors.New("Failed to delete")
+	return errorUnableToDelete
 }
 func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) {
 	url := restClient.URL + "/tunnels?filter[subdomain][name]=" + subdomainName
@@ -170,12 +140,10 @@ func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) 
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return "", errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-
 		buf, _ := ioutil.ReadAll(resp.Body)
 		errObject := ResponseError{}
 		err = json.Unmarshal(buf, &errObject)
@@ -184,17 +152,15 @@ func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) 
 
 	tunnels, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Tunnel)))
 	if err != nil {
-		fmt.Println(err)
-		return "", http.ErrAbortHandler
+		return "", errorUnableToParse
 	}
 	for _, tunnel := range tunnels {
 		t, _ := tunnel.(*Tunnel)
 		if t.ID != "" {
 			return t.ID, nil
-		} else {
-			return "", nil
 		}
+		return "", errorUnownedTunnel
 	}
 
-	return "", nil
+	return "", errorUnownedTunnel
 }

@@ -3,60 +3,58 @@ package restapi
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 )
 
+//SessionResponse Json response for login/session refresh
 type SessionResponse struct {
-	Access_Token  string `json:"access_token"`
-	Token_Type    string `json:"token_type"`
-	Expires_In    int    `json:"expires-in"`
-	Refresh_Token string `json:"refresh_token"`
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires-in"`
+	RefreshToken string `json:"refresh_token"`
 }
 
-type LoginRequest struct {
+type loginRequest struct {
 	Username string `json:"email"`
 	Password string `json:"password"`
 }
 
-func (restClient *RestClient) StartSession(refresh_token string) (SessionResponse, error) {
+//StartSession Start a session and set the restClient to the current access token
+func (restClient *RestClient) StartSession(refreshToken string) error {
 	responseBody := SessionResponse{}
 	url := restClient.URL + "/session"
 	req, err := http.NewRequest("PUT", url, nil)
-	req.Header.Add("Authorization", "Bearer "+refresh_token)
+	req.Header.Add("Authorization", "Bearer "+refreshToken)
 
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
-		fmt.Println("Could not connect to the api server")
-		os.Exit(1)
+		return errorCantConnectRestCall
 	}
 
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		errorBody := ResponseError{}
 		err = json.Unmarshal(body, &errorBody)
-		return responseBody, errorBody
+		return errorBody
 	}
 
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
-		fmt.Println("error:", err)
-		return responseBody, http.ErrAbortHandler
+		return errorUnableToParse
 	}
-	restClient.APIKEY = responseBody.Access_Token
-	return responseBody, nil
+	restClient.APIKEY = responseBody.AccessToken
+	return nil
 }
 
+//Login Login user with given username and password. Returns sessionresponse so cmd can set viper configs
 func (restClient *RestClient) Login(username string, password string) (SessionResponse, error) {
 	responseBody := SessionResponse{}
 	url := restClient.URL + "/login"
 
-	reqBody := LoginRequest{
+	reqBody := loginRequest{
 		Username: username,
 		Password: password,
 	}
@@ -68,7 +66,7 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 	resp, err := restClient.Client.Do(req)
 
 	if err != nil {
-		return responseBody, err
+		return responseBody, errorCantConnectRestCall
 	}
 
 	defer resp.Body.Close()
@@ -76,7 +74,6 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		errorBody := ResponseError{}
 		err = json.Unmarshal(body, &errorBody)
 		return responseBody, errorBody
@@ -84,9 +81,9 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 
 	err = json.Unmarshal(body, &responseBody)
 	if err != nil {
-		return responseBody, http.ErrAbortHandler
+		return responseBody, errorUnableToParse
 	}
-	restClient.RefreshToken = responseBody.Refresh_Token
-	restClient.APIKEY = responseBody.Access_Token
+	restClient.RefreshToken = responseBody.RefreshToken
+	restClient.APIKEY = responseBody.AccessToken
 	return responseBody, nil
 }

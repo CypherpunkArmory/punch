@@ -1,7 +1,17 @@
 package restapi
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
+var errorUnownedSubdomain = errors.New("You do not own this subdomain")
+var errorCantConnectRestCall = errors.New("Problem contacting the server")
+var errorUnableToParse = errors.New("Can't parse the json response")
+var errorUnownedTunnel = errors.New("You do not own this subdomain")
+var errorUnableToDelete = errors.New("Failed to delete")
+
+//ResponseError JSONapi response error
 type ResponseError struct {
 	Data struct {
 		Type       string `json:"type"`

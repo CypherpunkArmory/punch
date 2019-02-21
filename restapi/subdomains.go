@@ -13,6 +13,7 @@ import (
 	"github.com/google/jsonapi"
 )
 
+//Subdomain Subdomain object that holds all needed info
 type Subdomain struct {
 	ID       string `jsonapi:"primary,subdomain"`
 	Name     string `jsonapi:"attr,name"`
@@ -20,7 +21,7 @@ type Subdomain struct {
 	Reserved bool   `jsonapi:"attr,reserved"`
 }
 
-//SubdomainListAPI get list of subdomains reserved
+//ListSubdomainAPI get list of subdomains reserved
 func (restClient *RestClient) ListSubdomainAPI() ([]Subdomain, error) {
 	subdomainList := []Subdomain{}
 	url := restClient.URL + "/subdomains"
@@ -28,21 +29,17 @@ func (restClient *RestClient) ListSubdomainAPI() ([]Subdomain, error) {
 	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return nil, errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		errObject := new(jsonapi.ErrorObject)
 		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		return subdomainList, err
+		return subdomainList, errObject
 	}
 	responseBody, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Subdomain)))
 	if err != nil {
-		fmt.Println(err)
-		responseBody := []Subdomain{}
-		return responseBody, http.ErrAbortHandler
+		return subdomainList, errorUnableToParse
 	}
 	for _, subdomain := range responseBody {
 		s, _ := subdomain.(*Subdomain)
@@ -65,8 +62,7 @@ func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdoma
 	err := jsonapi.MarshalPayload(&outputBuffer, &request)
 
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return subdomainReturn, errorUnableToParse
 	}
 
 	req, err := http.NewRequest("POST", url, &outputBuffer)
@@ -75,12 +71,10 @@ func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdoma
 	resp, err := restClient.Client.Do(req)
 
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
+		return subdomainReturn, errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		buf, _ := ioutil.ReadAll(resp.Body)
 		errObject := ResponseError{}
 		err = json.Unmarshal(buf, &errObject)
@@ -88,24 +82,17 @@ func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdoma
 	}
 	err = jsonapi.UnmarshalPayload(resp.Body, &subdomainReturn)
 	if err != nil {
-		fmt.Println(err)
-		responseBody := Subdomain{}
-		return responseBody, http.ErrAbortHandler
+		return subdomainReturn, errorUnableToParse
 	}
 	return subdomainReturn, nil
 }
 
-//ReleaseSubodmainAPI deletes tunnel
+//ReleaseSubdomainAPI deletes subdomain
 func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 	id, err := restClient.getSubdomainID(subdomainName)
 
 	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
-	}
-
-	if id == "" {
-		return errors.New("You do not own this subdomain")
+		return err
 	}
 
 	url := restClient.URL + "/subdomains/" + id
@@ -124,7 +111,6 @@ func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		errorBody := ResponseError{}
 		err = json.Unmarshal(body, &errorBody)
 		return errorBody
@@ -133,41 +119,7 @@ func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 	return errors.New("Failed to delete")
 }
 
-func (restClient *RestClient) getSubdomainID(subdomainName string) (string, error) {
-	url := restClient.URL + "/subdomains?filter[name]=" + subdomainName
-	req, err := http.NewRequest("GET", url, nil)
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
-	resp, err := restClient.Client.Do(req)
-
-	if err != nil {
-		fmt.Println("error:", err)
-		panic(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
-		buf, _ := ioutil.ReadAll(resp.Body)
-		errObject := ResponseError{}
-		err = json.Unmarshal(buf, &errObject)
-		return "-1", errObject
-	}
-
-	subdomains, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Subdomain)))
-	if err != nil {
-		fmt.Println(err)
-		return "-1", http.ErrAbortHandler
-	}
-	for _, subdomain := range subdomains {
-		s, _ := subdomain.(*Subdomain)
-		if s.ID != "" {
-			return s.ID, nil
-		} else {
-			return "", nil
-		}
-	}
-
-	return "", nil
-}
+//GetSubdomainName Returns subdomain name of a given subdomain id
 func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, error) {
 	url := restClient.URL + "/subdomains/" + subdomainID
 	req, err := http.NewRequest("GET", url, nil)
@@ -180,7 +132,6 @@ func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, erro
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 399 {
-		//errorBody := ErrorResponse{}
 		buf, _ := ioutil.ReadAll(resp.Body)
 		errObject := ResponseError{}
 		err = json.Unmarshal(buf, &errObject)
@@ -189,12 +140,44 @@ func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, erro
 	subdomain := new(Subdomain)
 	err = jsonapi.UnmarshalPayload(resp.Body, subdomain)
 	if err != nil {
-		fmt.Println(err)
 		return "", http.ErrAbortHandler
 	}
 
 	if subdomain.Name != "" {
 		return subdomain.Name, nil
 	}
-	return "", nil
+	return "", errorUnownedSubdomain
+}
+
+func (restClient *RestClient) getSubdomainID(subdomainName string) (string, error) {
+	url := restClient.URL + "/subdomains?filter[name]=" + subdomainName
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
+	resp, err := restClient.Client.Do(req)
+
+	if err != nil {
+		return "", errorCantConnectRestCall
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 399 {
+		//errorBody := ErrorResponse{}
+		buf, _ := ioutil.ReadAll(resp.Body)
+		errObject := ResponseError{}
+		err = json.Unmarshal(buf, &errObject)
+		return "", err
+	}
+
+	subdomains, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Subdomain)))
+	if err != nil {
+		return "", errorUnableToParse
+	}
+	for _, subdomain := range subdomains {
+		s, _ := subdomain.(*Subdomain)
+		if s.ID != "" {
+			return s.ID, nil
+		}
+		return "", errorUnownedSubdomain
+	}
+
+	return "", errorUnownedSubdomain
 }

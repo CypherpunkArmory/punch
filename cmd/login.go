@@ -33,7 +33,7 @@ func init() {
 
 func login() {
 	restAPI := restapi.RestClient{
-		URL: API_ENDPOINT,
+		URL: apiEndpoint,
 	}
 
 	response, err := restAPI.Login(username, password)
@@ -43,7 +43,7 @@ func login() {
 		os.Exit(1)
 	}
 
-	viper.Set("apikey", response.Refresh_Token)
+	viper.Set("apikey", response.RefreshToken)
 	err = viper.WriteConfig()
 
 	if err != nil {

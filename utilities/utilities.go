@@ -20,6 +20,7 @@ func CheckPort(port int) bool {
 	return 0 < port && port < 65536
 }
 
+//FixFilePath Fixes paths that include ~/ to full paths
 func FixFilePath(path string) string {
 	if strings.HasPrefix(path, "~/") {
 		usr, _ := user.Current()
@@ -29,6 +30,7 @@ func FixFilePath(path string) string {
 	return path
 }
 
+//GetPublicKey Returns publickey as a string
 func GetPublicKey(path string) (string, error) {
 	path = FixFilePath(path)
 	buf, err := ioutil.ReadFile(path)

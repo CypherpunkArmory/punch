@@ -2,6 +2,7 @@ module github.com/cypherpunkarmory/punch
 
 require (
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/cpuguy83/go-md2man v1.0.8 // indirect
 	github.com/dnaeon/go-vcr v1.0.1
 	github.com/google/jsonapi v0.0.0-20181016150055-d0428f63eb51
 	github.com/google/pprof v0.0.0-20190109223431-e84dfd68c163 // indirect
@@ -14,6 +15,8 @@ require (
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e
 	github.com/rendon/testcli v0.0.0-20161027181003-6283090d169f
 	github.com/rhysd/go-github-selfupdate v1.1.0
+	github.com/russross/blackfriday v2.0.0+incompatible // indirect
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
 	github.com/stretchr/testify v1.2.2

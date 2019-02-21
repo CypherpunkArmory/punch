@@ -6,20 +6,22 @@ import (
 	"github.com/cypherpunkarmory/punch/restapi"
 )
 
-type TunnelConfig struct {
-	RestApi        restapi.RestClient
+//Config Object to make passing config eaiser
+type Config struct {
+	RestAPI        restapi.RestClient
 	TunnelEndpoint restapi.Tunnel
 	PrivateKeyPath string
 	LocalPort      int
 	Subdomain      string
-	EndpointType   []string
-	EndpointUrl    string
+	EndpointType   string
+	EndpointURL    string
 }
-type Endpoint struct {
+
+type endpoint struct {
 	Host string
 	Port int
 }
 
-func (endpoint *Endpoint) String() string {
+func (endpoint *endpoint) String() string {
 	return fmt.Sprintf("%s:%d", endpoint.Host, endpoint.Port)
 }
