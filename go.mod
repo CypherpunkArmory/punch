@@ -15,6 +15,7 @@ require (
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e
 	github.com/rendon/testcli v0.0.0-20161027181003-6283090d169f
 	github.com/rhysd/go-github-selfupdate v1.1.0
+	github.com/rollbar/rollbar-go v1.0.2
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.3

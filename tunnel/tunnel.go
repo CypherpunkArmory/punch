@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cypherpunkarmory/punch/utilities"
+	rollbar "github.com/rollbar/rollbar-go"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -133,10 +134,14 @@ func StartReverseTunnel(tunnelConfig *Config) {
 	var serverConn net.Conn
 	serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 	if err != nil {
+		rollbar.Message("error", "SSH fail(Jump to Remote): "+err.Error())
+		rollbar.Wait()
 		fmt.Println("Failed to connect. Trying again in 10 seconds")
 		time.Sleep(10 * time.Second)
 		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 		if err != nil {
+			rollbar.Message("error", "SSH failed twice(Jump to Remote): "+err.Error())
+			rollbar.Wait()
 			tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
 			log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
 			os.Exit(1)

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/cypherpunkarmory/punch/restapi"
+	rollbar "github.com/rollbar/rollbar-go"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -18,11 +19,13 @@ var apiToken string
 var baseURL string
 var configFile string
 var configPath string
+var crashReporting bool
 var port int
 var privateKeyPath string
 var publicKeyPath string
 var refreshToken string
 var restAPI restapi.RestClient
+var rollbarToken string
 var subdomain string
 
 //This gets written in the makefile
@@ -39,6 +42,12 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			os.Exit(1)
 		}
+		rollbar.SetToken(rollbarToken)
+		rollbar.SetEnvironment("production")
+		rollbar.SetCodeVersion(version)
+		rollbar.SetServerRoot("github.com/CypherpunkArmory/punch")
+		rollbar.SetCaptureIp(rollbar.CaptureIpNone)
+		rollbar.SetEnabled(crashReporting && apiEndpoint == "http://api.holepunch.io")
 	},
 }
 
@@ -60,12 +69,15 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&apiEndpoint, "apiendpoint", "", "Holepunch server to use - (default is http://api.holepunch.io)")
 	rootCmd.PersistentFlags().StringVar(&publicKeyPath, "publickeypath", "", "Path to your public keys - (~/.ssh)")
 	rootCmd.PersistentFlags().StringVar(&privateKeyPath, "privatekeypath", "", "Path to your private keys - (~/.ssh)")
+	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers")
 
 	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
 	viper.BindPFlag("baseurl", rootCmd.PersistentFlags().Lookup("baseurl"))
 	viper.BindPFlag("apiendpoint", rootCmd.PersistentFlags().Lookup("apiendpoint"))
 	viper.BindPFlag("publickeypath", rootCmd.PersistentFlags().Lookup("publickeypath"))
 	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
+	viper.BindPFlag("crashreporting", rootCmd.PersistentFlags().Lookup("crashreporting"))
+	viper.SetDefault("crashreporting", false)
 	viper.SetDefault("baseurl", "holepunch.io")
 	viper.SetDefault("apiendpoint", "http://api.holepunch.io")
 	viper.SetDefault("publickeypath", "")

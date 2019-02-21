@@ -57,6 +57,8 @@ github.com/rendon/testcli v0.0.0-20161027181003-6283090d169f h1:onGP+qmYmjKs7pkm
 github.com/rendon/testcli v0.0.0-20161027181003-6283090d169f/go.mod h1:cq57a4l475CeMvE7RRpSui1MEqCmhirIt1E7kl8BC2Q=
 github.com/rhysd/go-github-selfupdate v1.1.0 h1:+aMomy69YCYxJ6kr13nYIgAJWSB1kHK5M5YpbmjQkWo=
 github.com/rhysd/go-github-selfupdate v1.1.0/go.mod h1:jbfShZ+Nl3IHUgr77kwQjObcWf1z961UAoD6p5LrPBU=
+github.com/rollbar/rollbar-go v1.0.2 h1:uA3+z0jq6ka9WUUt9VX/xuiQZXZyWRoeKvkhVvLO9Jc=
+github.com/rollbar/rollbar-go v1.0.2/go.mod h1:AcFs5f0I+c71bpHlXNNDbOWJiKwjFDtISeXco0L5PKQ=
 github.com/russross/blackfriday v2.0.0+incompatible h1:cBXrhZNUf9C+La9/YpS+UHpUT8YD6Td9ZMSU9APFcsk=
 github.com/russross/blackfriday v2.0.0+incompatible/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5IYyJwS/kOiWx8mHo=

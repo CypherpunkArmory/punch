@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var githubRepo string
-
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "update cli version",
@@ -28,7 +26,7 @@ func init() {
 
 func confirmAndSelfUpdate() {
 	up, err := selfupdate.NewUpdater(selfupdate.Config{})
-	latest, found, err := up.DetectLatest(githubRepo)
+	latest, found, err := up.DetectLatest("CypherpunkArmory/punch")
 	if err != nil {
 		log.Println("Error occurred while detecting version:", err)
 		return
