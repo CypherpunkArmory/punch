@@ -11,8 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var githubAPIToken string
-
 var githubRepo string
 
 var updateCmd = &cobra.Command{
@@ -29,9 +27,7 @@ func init() {
 }
 
 func confirmAndSelfUpdate() {
-	up, err := selfupdate.NewUpdater(selfupdate.Config{
-		APIToken: githubAPIToken,
-	})
+	up, err := selfupdate.NewUpdater(selfupdate.Config{})
 	latest, found, err := up.DetectLatest(githubRepo)
 	if err != nil {
 		log.Println("Error occurred while detecting version:", err)

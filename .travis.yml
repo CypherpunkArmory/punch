@@ -22,12 +22,8 @@ install: true
 notifications:
   email: false
 
-before_script:
-  - cp .netrc ~
-  - chmod 600 .netrc
-
 script:
-  - make REPO_NAME=${REPO_NAME} APIToken=${API_TOKEN} all     
+  - make REPO_NAME=${REPO_NAME} all     
 
 deploy:
   provider: releases

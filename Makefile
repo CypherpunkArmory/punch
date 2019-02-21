@@ -12,7 +12,7 @@ APIToken=
 ARCHITECTURES=386 amd64
 
 # Setup linker flags option for build that interoperate with variable names in src code
-LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/cmd.version=$(VERSION) -X github.com/cypherpunkarmory/punch/cmd.githubRepo=$(REPO_NAME) -X github.com/cypherpunkarmory/punch/cmd.githubAPIToken=$(APIToken) -s -w"
+LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/cmd.version=$(VERSION) -X github.com/cypherpunkarmory/punch/cmd.githubRepo=$(REPO_NAME) -s -w"
 
 default: build
 
