@@ -55,9 +55,12 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 	if err != nil {
 		return nil, errors.New("Cannot read SSH key file " + path)
 	}
+	if len(buffer) == 0 {
+		return nil, errors.New("Bad key file")
+	}
 	block, rest := pem.Decode(buffer)
 	if len(rest) > 0 {
-		return nil, errors.New("Empty pem file")
+		return nil, errors.New("Bad key file")
 	}
 	if !x509.IsEncryptedPEMBlock(block) {
 		key, err := ssh.ParsePrivateKey(buffer)
