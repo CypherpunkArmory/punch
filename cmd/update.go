@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -37,9 +36,10 @@ func confirmAndSelfUpdate() {
 		return
 	}
 
+	var input string
 	fmt.Print("Do you want to update to: ", latest.Version, "? (y/n): ")
-	input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil || (input != "y\n" && input != "n\n") {
+	_, err = fmt.Scanln(&input)
+	if err != nil || (input != "y" && input != "n") {
 		log.Println("Invalid input")
 		return
 	}
