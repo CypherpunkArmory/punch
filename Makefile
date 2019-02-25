@@ -30,7 +30,7 @@ macos:
 	$(shell export GOOS=darwin; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-darwin-$(GOARCH)))
 
 build:
-	go build ${LDFLAGS} -o ${BINARY}
+	go build ${LDFLAGS}
 
 # Remove only what we've created
 clean:
