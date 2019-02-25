@@ -10,6 +10,10 @@ VERSION=
 ROLLBAR_TOKEN=
 ARCHITECTURES=386 amd64
 
+#these get replaced later by os specific build rules
+GOOS=linux
+GOEXT=
+
 # Setup linker flags option for build that interoperate with variable names in src code
 LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/cmd.version=$(VERSION) -X github.com/cypherpunkarmory/punch/cmd.rollbarToken=$(ROLLBAR_TOKEN) -s -w"
 
@@ -17,17 +21,21 @@ default: build
 
 all: clean windows linux macos
 
-windows:
+build-os:
 	$(foreach GOARCH, $(ARCHITECTURES), \
-	$(shell export GOOS=windows; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-windows-$(GOARCH).exe))
+	$(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-$(GOOS)-$(GOARCH)$(GOEXT); mkdir -p gh-pages/static/$(GOOS)/$(GOARCH); cp $(BINARY)-$(GOOS)-$(GOARCH)$(GOEXT) gh-pages/static/$(GOOS)/$(GOARCH)/$(BINARY)$(GOEXT)))
 
-linux:
-	$(foreach GOARCH, $(ARCHITECTURES), \
-	$(shell export GOOS=linux; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-linux-$(GOARCH)))
+windows: GOOS=windows
+windows: GOEXT=.exe
+windows: build-os
 
-macos:
-	$(foreach GOARCH, $(ARCHITECTURES), \
-	$(shell export GOOS=darwin; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-darwin-$(GOARCH)))
+linux: GOOS=linux
+linux: GOEXT=
+linux: build-os
+
+macos: GOOS=darwin
+macos: GOEXT=
+macos: build-os
 
 build:
 	go build ${LDFLAGS} -o ${BINARY}
