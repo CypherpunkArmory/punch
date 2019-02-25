@@ -17,17 +17,19 @@ default: build
 
 all: clean windows linux macos
 
-windows:
+define build-os
 	$(foreach GOARCH, $(ARCHITECTURES), \
-	$(shell export GOOS=windows; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-windows-$(GOARCH).exe))
+		$(shell export GOOS=$(1); export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-$(1)-$(GOARCH)$(2); mkdir -p gh-pages/static/$(1)/$(GOARCH); cp $(BINARY)-$(1)-$(GOARCH)$(2) gh-pages/static/$(1)/$(GOARCH)/$(BINARY)$(2)))
+endef
 
-linux:
-	$(foreach GOARCH, $(ARCHITECTURES), \
-	$(shell export GOOS=linux; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-linux-$(GOARCH)))
+windows: 
+	$(call build-os,windows,.exe)
 
-macos:
-	$(foreach GOARCH, $(ARCHITECTURES), \
-	$(shell export GOOS=darwin; export GOARCH=$(GOARCH); go build ${LDFLAGS} -o $(BINARY)-darwin-$(GOARCH)))
+linux: 
+	$(call build-os,linux,)
+
+macos: 
+	$(call build-os,darwin,)
 
 build:
 	go build ${LDFLAGS} -o ${BINARY}
