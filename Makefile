@@ -10,10 +10,6 @@ VERSION=
 ROLLBAR_TOKEN=
 ARCHITECTURES=386 amd64
 
-#these get replaced later by os specific build rules
-GOOS=linux
-GOEXT=
-
 # Setup linker flags option for build that interoperate with variable names in src code
 LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/cmd.version=$(VERSION) -X github.com/cypherpunkarmory/punch/cmd.rollbarToken=$(ROLLBAR_TOKEN) -s -w"
 
