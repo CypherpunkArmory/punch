@@ -22,8 +22,8 @@ type tunnelConf struct {
 var itCmd = &cobra.Command{
 	Use:   "it [ports]",
 	Short: "Expose a web server on the ports you specify",
-	Long: `To expose a http web server on port 80 and https web server on port 443
-			 punch it http:80 https:443`,
+	Long: `To expose a http web server on port 5000 and https web server on port 5001
+			 punch it http:5000 https:5001`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
