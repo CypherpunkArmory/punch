@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -80,10 +81,10 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 }
 
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
-func StartReverseTunnel(tunnelConfig *Config) {
+func StartReverseTunnel(tunnelConfig Config, wg *sync.WaitGroup) {
+	defer wg.Done()
 	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
 	remoteEndpointPort := 3000
-	//TODO: fix when creating punch it
 	if tunnelConfig.EndpointType == "https" {
 		remoteEndpointPort = 3001
 	}
@@ -183,7 +184,6 @@ func StartReverseTunnel(tunnelConfig *Config) {
 		<-c
 		tunnelConfig.RestAPI.StartSession(tunnelConfig.RestAPI.RefreshToken)
 		tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		listener.Close()
 		os.Exit(0)
 	}()
 
@@ -193,9 +193,6 @@ func StartReverseTunnel(tunnelConfig *Config) {
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		local, err := net.Dial("tcp", localEndpoint.String())
-		if err != nil {
-		}
-
 		client, err := listener.Accept()
 		if err == nil && client != nil && local != nil {
 			go handleClient(client, local)
