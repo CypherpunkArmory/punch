@@ -42,4 +42,4 @@ deploy:
     local_dir: gh-pages/
     github-token: ${GH_TOKEN}
     on:
-      branch: gh-pages
+      branch: add-gh-pages
