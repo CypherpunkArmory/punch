@@ -10,14 +10,14 @@ import (
 func TestBadSubdomainReserve(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
-	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain*/*/*/$$", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain*/*/*/$$", "--config", configPath)
 	p.Run()
 
 	require.Equal(t, p.Stdout(), "Invalid Subdomain\n")
-	p = testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
 }
@@ -25,18 +25,18 @@ func TestSubdomainReserve(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
 
-	p := testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
-	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
 	p.Run()
 
 	require.Equal(t, p.Stdout(), "Successfully reserved subdomain testdomain\n")
-	p = testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 	defer func() {
-		p := testcli.Command("../../punch", "subdomain", "release", "testdomain", "--config", configPath)
+		p := testcli.Command(exePath, "subdomain", "release", "testdomain", "--config", configPath)
 		p.Run()
 	}()
 
@@ -44,22 +44,22 @@ func TestSubdomainReserve(t *testing.T) {
 func TestOwnedSubdomainReserve(t *testing.T) {
 	defer createConfig(t)()
 	configLogin(t)
-	p := testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
 
-	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
 	p.Run()
-	p = testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 
-	p = testcli.Command("../../punch", "subdomain", "reserve", "testdomain", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
 	p.Run()
 	require.Equal(t, p.Stdout(), "Subdomain has already been reserved\n")
 
 	defer func() {
-		p := testcli.Command("../../punch", "subdomain", "release", "testdomain", "--config", configPath)
+		p := testcli.Command(exePath, "subdomain", "release", "testdomain", "--config", configPath)
 		p.Run()
 	}()
 }
