@@ -21,7 +21,8 @@ var setupCmd = &cobra.Command{
 		setupLogin()
 		fmt.Print("Would you like to generate ssh keys to forward traffic? (Y/n): ")
 		fmt.Scanln(&setupKey)
-		if setupKey != "" && strings.HasPrefix(setupKey, "y") && strings.HasPrefix(setupKey, "n") {
+		setupKey = strings.ToLower(setupKey)
+		if setupKey != "" && !strings.HasPrefix(setupKey, "y") && !strings.HasPrefix(setupKey, "n") {
 			log.Println("Invalid input")
 			os.Exit(1)
 		}
@@ -31,6 +32,7 @@ var setupCmd = &cobra.Command{
 			return
 		}
 		generateKey("", "holepunch_key")
+		fmt.Println("Generated keys in the current directory")
 	},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
