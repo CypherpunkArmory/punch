@@ -14,8 +14,7 @@ git:
 
 branches:
   only:
-  - /\d+\.\d+\.\d+/
-  - master
+  - add-gh-pages
 
 install: true
 # Don't email me the results of the test runs.
@@ -41,6 +40,6 @@ deploy:
   - provider: pages
     skip_cleanup: true
     local_dir: gh-pages/
-    github-token: $GITHUB_TOKEN
+    github-token: ${GH_TOKEN}
     on:
       branch: gh-pages
