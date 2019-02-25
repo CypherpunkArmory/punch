@@ -13,7 +13,6 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"github.com/cypherpunkarmory/punch/utilities"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,7 +29,7 @@ var generateKeyCmd = &cobra.Command{
 		path := ""
 		if len(args) > 0 {
 			path = args[0]
-			path = utilities.FixFilePath(path)
+			path = fixFilePath(path)
 		}
 		err := generateKey(path, fileName)
 		if err != nil {

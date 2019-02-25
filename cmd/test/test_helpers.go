@@ -2,13 +2,38 @@ package cmdtest
 
 import (
 	"os"
+	"runtime"
 	"testing"
+
+	homedir "github.com/mitchellh/go-homedir"
 
 	"github.com/rendon/testcli"
 	"github.com/spf13/viper"
 )
 
-var configPath = "/tmp/punch.toml"
+func getConfigPath() string {
+	if runtime.GOOS == "windows" {
+		home, _ := homedir.Dir()
+		return home + "\\punch_test.toml"
+	}
+	return "/tmp/punch.toml"
+}
+
+func getExePath() string {
+	if runtime.GOOS == "windows" {
+		return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch.exe"
+	}
+	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch"
+}
+func getKeyPath() string {
+	if runtime.GOOS == "windows" {
+		return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator)
+	}
+	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator)
+}
+
+var configPath = getConfigPath()
+var exePath = getExePath()
 
 func createConfig(t *testing.T) func() {
 	t.Helper()
@@ -19,7 +44,15 @@ func createConfig(t *testing.T) func() {
 	return func() {
 		err := os.Remove(configPath)
 		if err != nil {
-			t.Fatalf(configPath + " not deleted")
+			viper.SetDefault("apikey", "")
+			viper.SetDefault("baseurl", "holepunch.io")
+			viper.SetDefault("apiendpoint", "http://0.0.0.0:5000")
+			viper.SetDefault("publickeypath", getKeyPath())
+			viper.SetDefault("privatekeypath", getKeyPath())
+			err = viper.WriteConfigAs(configPath)
+			if err != nil {
+				t.Fatalf("Cant write config file")
+			}
 		}
 	}
 }
@@ -28,8 +61,8 @@ func initTestConfig(t *testing.T) {
 	viper.SetDefault("apikey", "")
 	viper.SetDefault("baseurl", "holepunch.io")
 	viper.SetDefault("apiendpoint", "http://0.0.0.0:5000")
-	viper.SetDefault("publickeypath", "/tmp/holepunch_key.pub")
-	viper.SetDefault("privatekeypath", "/tmp/holepunch_key.pem")
+	viper.SetDefault("publickeypath", getKeyPath())
+	viper.SetDefault("privatekeypath", getKeyPath())
 	err := viper.WriteConfigAs(configPath)
 	if err != nil {
 		t.Fatalf("Couldn't generate config file")
@@ -38,16 +71,16 @@ func initTestConfig(t *testing.T) {
 
 func configLogin(t *testing.T) {
 	t.Helper()
-	p := testcli.Command("../../punch", "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", configPath)
+	p := testcli.Command(exePath, "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", configPath)
 	p.Run()
 }
 
 func reserveSubdomain(t *testing.T, subdomain string) func() {
 	t.Helper()
-	p := testcli.Command("../../punch", "subdomain", "reserve", subdomain, "--config", configPath)
+	p := testcli.Command(exePath, "subdomain", "reserve", subdomain, "--config", configPath)
 	p.Run()
 	return func() {
-		p := testcli.Command("../../punch", "subdomain", "release", subdomain, "--config", configPath)
+		p := testcli.Command(exePath, "subdomain", "release", subdomain, "--config", configPath)
 		p.Run()
 	}
 }

@@ -16,7 +16,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cypherpunkarmory/punch/utilities"
 	rollbar "github.com/rollbar/rollbar-go"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -51,7 +50,6 @@ func handleClient(client net.Conn, remote net.Conn) {
 }
 
 func privateKeyFile(path string) (ssh.AuthMethod, error) {
-	path = utilities.FixFilePath(path)
 	buffer, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, errors.New("Cannot read SSH key file " + path)

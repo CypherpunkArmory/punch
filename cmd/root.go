@@ -145,7 +145,9 @@ func tryReadConfig() (err error) {
 		refreshToken = viper.GetString("apikey")
 		baseURL = viper.GetString("baseurl")
 		publicKeyPath = viper.GetString("publickeypath")
+		privateKeyPath = fixFilePath(publicKeyPath)
 		privateKeyPath = viper.GetString("privatekeypath")
+		privateKeyPath = fixFilePath(privateKeyPath)
 		apiEndpoint = viper.GetString("apiendpoint")
 	} else {
 		if _, err := os.Stat(configPath + string(os.PathSeparator) + ".punch.toml"); err != nil {

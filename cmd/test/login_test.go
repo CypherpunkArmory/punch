@@ -11,7 +11,7 @@ import (
 
 func TestAskForLogin(t *testing.T) {
 	defer createConfig(t)()
-	p := testcli.Command("../../punch", "subdomain", "list", "--config", configPath)
+	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 
 	require.Contains(t, p.Stdout(), "You need to login using `punch login` first.")
@@ -19,7 +19,7 @@ func TestAskForLogin(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	defer createConfig(t)()
-	p := testcli.Command("../../punch", "login", "--config", configPath)
+	p := testcli.Command(exePath, "login", "--config", configPath)
 	p.Run()
 	if !p.Failure() {
 		t.Fatalf("Expected punch login to fail, but it succeeed.")
@@ -32,7 +32,7 @@ func TestLogin(t *testing.T) {
 
 func TestLoginSetsTOML(t *testing.T) {
 	defer createConfig(t)()
-	p := testcli.Command("../../punch", "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", configPath)
+	p := testcli.Command(exePath, "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", configPath)
 	p.Run()
 
 	if !p.Success() {
@@ -51,7 +51,7 @@ func TestLoginSetsTOML(t *testing.T) {
 }
 func TestIncorrectLogin(t *testing.T) {
 	defer createConfig(t)()
-	p := testcli.Command("../../punch", "login", "-u", "testuser@holepunch.io", "-p", "wrongpass", "--config", configPath)
+	p := testcli.Command(exePath, "login", "-u", "testuser@holepunch.io", "-p", "wrongpass", "--config", configPath)
 	p.Run()
 
 	if !p.Success() {

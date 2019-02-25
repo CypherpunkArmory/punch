@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/cypherpunkarmory/punch/tunnel"
-	"github.com/cypherpunkarmory/punch/utilities"
 	"github.com/spf13/cobra"
 )
 
@@ -34,16 +33,16 @@ func init() {
 
 }
 func tunnelHTTPS() {
-	if subdomain != "" && !utilities.CheckSubdomain(subdomain) {
+	if subdomain != "" && !checkSubdomain(subdomain) {
 		fmt.Println("Invalid Subdomain")
 		os.Exit(1)
 	}
-	if !utilities.CheckPort(port) {
+	if !checkPort(port) {
 		fmt.Println("Port is not in range[1-65535]")
 		os.Exit(1)
 	}
 
-	publicKey, err := utilities.GetPublicKey(publicKeyPath)
+	publicKey, err := getPublicKey(publicKeyPath)
 	if err != nil {
 		os.Exit(3)
 	}

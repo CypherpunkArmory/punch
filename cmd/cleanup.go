@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cypherpunkarmory/punch/utilities"
-
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +23,7 @@ func init() {
 }
 
 func cleanup(Subdomain string) {
-	if !utilities.CheckSubdomain(Subdomain) {
+	if !checkSubdomain(Subdomain) {
 		fmt.Println("Invalid Subdomain")
 		os.Exit(1)
 	}
