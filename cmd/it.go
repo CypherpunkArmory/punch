@@ -69,6 +69,7 @@ func init() {
 
 func tunnelMultiple(confs []tunnelConf) {
 	var tunnelConfigs = make([]tunnel.Config, len(confs), len(confs))
+	protocol := make([]string, len(confs), len(confs))
 	if subdomain != "" && !utilities.CheckSubdomain(subdomain) {
 		fmt.Println("Invalid Subdomain")
 		os.Exit(1)
@@ -78,7 +79,9 @@ func tunnelMultiple(confs []tunnelConf) {
 	if err != nil {
 		os.Exit(3)
 	}
-	protocol := []string{"http"}
+	for index, t := range confs {
+		protocol[index] = t.forwardType
+	}
 	response, err := restAPI.CreateTunnelAPI(subdomain, publicKey, protocol)
 	if err != nil {
 		fmt.Println(err.Error())
