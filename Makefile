@@ -32,7 +32,7 @@ macos:
 	$(call build-os,darwin,)
 
 build:
-	go build ${LDFLAGS} -o ${BINARY}
+	go build ${LDFLAGS}
 
 # Remove only what we've created
 clean:
