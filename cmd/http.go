@@ -39,7 +39,7 @@ func tunnelHTTP() {
 		os.Exit(1)
 	}
 	if !utilities.CheckPort(port) {
-		fmt.Println("Port is not in range[1-65535")
+		fmt.Println("Port is not in range[1-65535]")
 		os.Exit(1)
 	}
 
@@ -66,6 +66,5 @@ func tunnelHTTP() {
 		LocalPort:      port,
 		Subdomain:      subdomain,
 	}
-	tunnel.StartReverseTunnel(&tunnelConfig)
-
+	tunnel.StartReverseTunnel(tunnelConfig, nil)
 }
