@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/cypherpunkarmory/punch/tunnel"
-	"github.com/cypherpunkarmory/punch/utilities"
 	"github.com/reiver/go-telnet"
 	"github.com/spf13/cobra"
 )
@@ -70,12 +69,12 @@ func init() {
 func tunnelMultiple(confs []tunnelConf) {
 	var tunnelConfigs = make([]tunnel.Config, len(confs), len(confs))
 	protocol := make([]string, len(confs), len(confs))
-	if subdomain != "" && !utilities.CheckSubdomain(subdomain) {
+	if subdomain != "" && !checkSubdomain(subdomain) {
 		fmt.Println("Invalid Subdomain")
 		os.Exit(1)
 	}
 
-	publicKey, err := utilities.GetPublicKey(publicKeyPath)
+	publicKey, err := getPublicKey(publicKeyPath)
 	if err != nil {
 		os.Exit(3)
 	}
@@ -92,7 +91,7 @@ func tunnelMultiple(confs []tunnelConf) {
 	}
 
 	for index, conf := range confs {
-		if !utilities.CheckPort(conf.port) {
+		if !checkPort(conf.port) {
 			fmt.Println("Port is not in range[1-65535]")
 			restAPI.DeleteTunnelAPI(subdomain)
 			os.Exit(1)

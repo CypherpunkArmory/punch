@@ -1,4 +1,4 @@
-package utilities
+package cmd
 
 import (
 	"fmt"
@@ -10,18 +10,18 @@ import (
 )
 
 //CheckSubdomain checks if subdomain is valid
-func CheckSubdomain(subdomain string) bool {
+func checkSubdomain(subdomain string) bool {
 	r, _ := regexp.Compile(`^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?\z`)
 	return r.MatchString(subdomain)
 }
 
 //CheckPort checks if port is in correct range
-func CheckPort(port int) bool {
+func checkPort(port int) bool {
 	return 0 < port && port < 65536
 }
 
 //FixFilePath Fixes paths that include ~/ to full paths
-func FixFilePath(path string) string {
+func fixFilePath(path string) string {
 	if strings.HasPrefix(path, "~/") {
 		usr, _ := user.Current()
 		dir := usr.HomeDir
@@ -31,8 +31,8 @@ func FixFilePath(path string) string {
 }
 
 //GetPublicKey Returns publickey as a string
-func GetPublicKey(path string) (string, error) {
-	path = FixFilePath(path)
+func getPublicKey(path string) (string, error) {
+	path = fixFilePath(path)
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
 		fmt.Println("Unable to find public key. Either set correct path in .punch.toml or generate a key using `punch generate-key`")

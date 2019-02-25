@@ -1,4 +1,4 @@
-package utilities
+package cmd
 
 import (
 	"path/filepath"
@@ -16,7 +16,7 @@ func TestCheckSubdomain(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := CheckSubdomain(tc.Input)
+			actual := checkSubdomain(tc.Input)
 			if actual != tc.Expected {
 				t.Fatal("Failed")
 			}
@@ -35,7 +35,7 @@ func TestCheckPort(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := CheckPort(tc.Input)
+			actual := checkPort(tc.Input)
 			if actual != tc.Expected {
 				t.Fatal("Failed")
 			}
@@ -54,7 +54,7 @@ func TestFixFilePath(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := FixFilePath(tc.Input)
+			actual := fixFilePath(tc.Input)
 			if actual != tc.Expected {
 				if tc.ShouldFail {
 				} else {
@@ -76,7 +76,7 @@ func TestGetPublicKey(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual, err := GetPublicKey(tc.Input)
+			actual, err := getPublicKey(tc.Input)
 			if actual == "" && !tc.ShouldFail {
 				t.Fatal("Failed")
 			}
