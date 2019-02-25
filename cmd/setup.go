@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"syscall"
 
 	"github.com/cypherpunkarmory/punch/restapi"
@@ -18,13 +19,13 @@ var setupCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var setupKey string
 		setupLogin()
-		fmt.Print("Would you like to generate ssh keys to forward traffic? (y/n): ")
-		_, err := fmt.Scanln(&setupKey)
-		if err != nil || (setupKey != "y" && setupKey != "n") {
+		fmt.Print("Would you like to generate ssh keys to forward traffic? (Y/n): ")
+		fmt.Scanln(&setupKey)
+		if setupKey != "" && strings.HasPrefix(setupKey, "y") && strings.HasPrefix(setupKey, "n") {
 			log.Println("Invalid input")
 			os.Exit(1)
 		}
-		if setupKey == "n" {
+		if strings.HasPrefix(setupKey, "n") {
 			fmt.Println("Make sure you set the path to your keys in the config file located at: " + configPath +
 				"\n You can also generate keys using the generate-key command")
 			return
