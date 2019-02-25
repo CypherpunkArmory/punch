@@ -14,7 +14,8 @@ git:
 
 branches:
   only:
-  - add-gh-pages
+  - /\d+\.\d+\.\d+/
+  - master
 
 install: true
 # Don't email me the results of the test runs.
@@ -42,4 +43,4 @@ deploy:
     local_dir: gh-pages/
     github-token: ${GH_TOKEN}
     on:
-      branch: add-gh-pages
+      tags: true
