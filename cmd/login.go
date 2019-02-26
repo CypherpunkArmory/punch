@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cypherpunkarmory/punch/restapi"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -32,10 +31,6 @@ func init() {
 }
 
 func login() {
-	restAPI := restapi.RestClient{
-		URL: apiEndpoint,
-	}
-
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {

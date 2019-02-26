@@ -7,7 +7,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/cypherpunkarmory/punch/restapi"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
@@ -57,10 +56,6 @@ func setupLogin() {
 	}
 	fmt.Println()
 	password = string(bytePassword)
-	restAPI := restapi.RestClient{
-		URL: apiEndpoint,
-	}
-
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {
