@@ -1,0 +1,56 @@
+linters-settings:
+  goimports:
+    local-prefixes: github.com/Cypherpunkarmory/punch
+  govet:
+    check-shadowing: true
+  golint:
+    min-confidence: 0.8
+  gocyclo:
+    min-complexity: 10
+  maligned:
+    suggest-new: true
+  dupl:
+    threshold: 150
+  goconst:
+    min-len: 2
+    min-occurrences: 2
+  misspell:
+    locale: US
+  lll:
+    line-length: 140
+  goimports:
+    local-prefixes: github.com/golangci/golangci-lint
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - wrapperFunc
+      - commentFormatting
+      - paramTypeCombine
+      - regexpMust
+
+linters:
+  enable-all: true
+  disable:
+    - prealloc
+    - gochecknoglobals
+    - gochecknoinits
+    - gofmt
+
+issues:
+  exclude-rules:
+    - path: "cmd/"
+      linters:
+        - dupl
+    - text: "viper."
+      linters:
+        - errcheck
+run:
+  skip-dirs:
+    - cmd/test
+    - cmd/test-files
+    - tunnel/test-files
+  deadline: 1m
+  tests: false

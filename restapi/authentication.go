@@ -25,6 +25,9 @@ func (restClient *RestClient) StartSession(refreshToken string) error {
 	responseBody := SessionResponse{}
 	url := restClient.URL + "/session"
 	req, err := http.NewRequest("PUT", url, nil)
+	if err != nil {
+		return errorCantConnectRestCall
+	}
 	req.Header.Add("Authorization", "Bearer "+refreshToken)
 
 	resp, err := restClient.Client.Do(req)
@@ -38,6 +41,9 @@ func (restClient *RestClient) StartSession(refreshToken string) error {
 	if resp.StatusCode > 399 {
 		errorBody := ResponseError{}
 		err = json.Unmarshal(body, &errorBody)
+		if err != nil {
+			return err
+		}
 		return errorBody
 	}
 
@@ -76,6 +82,9 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 	if resp.StatusCode > 399 {
 		errorBody := ResponseError{}
 		err = json.Unmarshal(body, &errorBody)
+		if err != nil {
+			return responseBody, err
+		}
 		return responseBody, errorBody
 	}
 

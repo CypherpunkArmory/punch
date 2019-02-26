@@ -25,6 +25,10 @@ func init() {
 
 func confirmAndSelfUpdate() {
 	up, err := selfupdate.NewUpdater(selfupdate.Config{})
+	if err != nil {
+		log.Println("Couldn't create updater:", err)
+		return
+	}
 	latest, found, err := up.DetectLatest("CypherpunkArmory/punch")
 	if err != nil {
 		log.Println("Error occurred while detecting version:", err)

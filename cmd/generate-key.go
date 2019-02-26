@@ -51,14 +51,14 @@ func generateKey(keyPath string, fileName string) error {
 		return err
 	}
 	if keyPath == "" {
-		ex, err := os.Executable()
-		if err != nil {
-			panic(err)
+		ex, errEx := os.Executable()
+		if errEx != nil {
+			return errEx
 		}
 		keyPath = filepath.Dir(ex) + string(os.PathSeparator)
 	}
 	if !strings.HasSuffix(keyPath, string(os.PathSeparator)) {
-		keyPath = keyPath + string(os.PathSeparator)
+		keyPath += string(os.PathSeparator)
 	}
 	// generate and write private key as PEM
 	privateKeyFile, err := os.Create(keyPath + fileName + ".pem")
@@ -67,8 +67,8 @@ func generateKey(keyPath string, fileName string) error {
 		return err
 	}
 	privateKeyPEM := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
-	if err := pem.Encode(privateKeyFile, privateKeyPEM); err != nil {
-		return err
+	if errEncode := pem.Encode(privateKeyFile, privateKeyPEM); errEncode != nil {
+		return errEncode
 	}
 	// generate and write public key
 	pub, err := ssh.NewPublicKey(&privateKey.PublicKey)

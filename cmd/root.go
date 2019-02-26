@@ -153,7 +153,7 @@ func tryReadConfig() (err error) {
 		if _, err := os.Stat(configPath + string(os.PathSeparator) + ".punch.toml"); err != nil {
 			if os.IsNotExist(err) {
 				os.MkdirAll(configPath, os.ModePerm)
-				err := viper.WriteConfigAs(configPath + string(os.PathSeparator) + ".punch.toml")
+				err = viper.WriteConfigAs(configPath + string(os.PathSeparator) + ".punch.toml")
 				if err != nil {
 					fmt.Println("Couldn't generate default config file")
 					return err

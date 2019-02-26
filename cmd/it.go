@@ -26,7 +26,7 @@ var itCmd = &cobra.Command{
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		var confs = make([]tunnelConf, len(args), len(args))
+		var confs = make([]tunnelConf, len(args))
 		for index, conf := range args {
 			confs[index], err = getTunnelConfig(conf)
 			if err != nil {
@@ -67,8 +67,8 @@ func init() {
 }
 
 func tunnelMultiple(confs []tunnelConf) {
-	var tunnelConfigs = make([]tunnel.Config, len(confs), len(confs))
-	protocol := make([]string, len(confs), len(confs))
+	var tunnelConfigs = make([]tunnel.Config, len(confs))
+	protocol := make([]string, len(confs))
 	if subdomain != "" && !checkSubdomain(subdomain) {
 		fmt.Println("Invalid Subdomain")
 		os.Exit(1)
@@ -93,7 +93,10 @@ func tunnelMultiple(confs []tunnelConf) {
 	for index, conf := range confs {
 		if !checkPort(conf.port) {
 			fmt.Println("Port is not in range[1-65535]")
-			restAPI.DeleteTunnelAPI(subdomain)
+			err := restAPI.DeleteTunnelAPI(subdomain)
+			if err != nil {
+				fmt.Println("Could not delete tunnel. Use punch cleanup " + subdomain)
+			}
 			os.Exit(1)
 		}
 		tunnelConfigs[index] = tunnel.Config{
@@ -108,8 +111,8 @@ func tunnelMultiple(confs []tunnelConf) {
 	}
 	var wg sync.WaitGroup
 	wg.Add(len(tunnelConfigs))
-	for _, conf := range tunnelConfigs {
-		go tunnel.StartReverseTunnel(conf, &wg)
+	for i := 0; i < len(tunnelConfigs); i++ {
+		go tunnel.StartReverseTunnel(tunnelConfigs[i], &wg)
 	}
 	wg.Wait()
 

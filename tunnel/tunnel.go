@@ -62,14 +62,17 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 		return nil, errors.New("Bad key file")
 	}
 	if !x509.IsEncryptedPEMBlock(block) {
-		key, err := ssh.ParsePrivateKey(buffer)
-		if err != nil {
+		key, errParse := ssh.ParsePrivateKey(buffer)
+		if errParse != nil {
 			return nil, errors.New("Cannot parse SSH key file " + path)
 		}
 		return ssh.PublicKeys(key), nil
 	}
 	fmt.Println("Your password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		return nil, errors.New("Could not read your password " + err.Error())
+	}
 	key, err := ssh.ParsePrivateKeyWithPassphrase(buffer, bytePassword)
 	if err != nil {
 		return nil, errors.New("Cannot parse SSH key file " + path)
@@ -174,7 +177,6 @@ func StartReverseTunnel(tunnelConfig Config, wg *sync.WaitGroup) {
 		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
 		syscall.SIGINT,  // Ctrl+C
 		syscall.SIGQUIT, // Ctrl-\
-		syscall.SIGKILL, // "always fatal", "SIGKILL and SIGSTOP may not be caught by a program"
 		syscall.SIGHUP,  // "terminal is disconnected"
 	)
 
@@ -190,9 +192,9 @@ func StartReverseTunnel(tunnelConfig Config, wg *sync.WaitGroup) {
 	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
-		local, err := net.Dial("tcp", localEndpoint.String())
-		client, err := listener.Accept()
-		if err == nil && client != nil && local != nil {
+		local, errLocal := net.Dial("tcp", localEndpoint.String())
+		client, errClient := listener.Accept()
+		if errLocal == nil && errClient == nil && client != nil && local != nil {
 			go handleClient(client, local)
 		}
 	}

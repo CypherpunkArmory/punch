@@ -30,7 +30,11 @@ var setupCmd = &cobra.Command{
 				"\n You can also generate keys using the generate-key command")
 			return
 		}
-		generateKey("", "holepunch_key")
+		err := generateKey("", "holepunch_key")
+		if err != nil {
+			fmt.Println("Could not generate key")
+			os.Exit(1)
+		}
 		fmt.Println("Generated keys in the current directory")
 	},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -47,11 +51,14 @@ func setupLogin() {
 	var password string
 	fmt.Print("Enter Username: ")
 	_, err := fmt.Scanln(&username)
-
+	if err != nil {
+		fmt.Println("Error reading username")
+		os.Exit(1)
+	}
 	fmt.Print("Enter Password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
-		fmt.Println("Error reading username/password")
+		fmt.Println("Error reading password")
 		os.Exit(1)
 	}
 	fmt.Println()
