@@ -88,7 +88,7 @@ func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdoma
 		if err != nil {
 			return subdomainReturn, err
 		}
-		return subdomainReturn, errObject
+		return subdomainReturn, &errObject
 	}
 	err = jsonapi.UnmarshalPayload(resp.Body, &subdomainReturn)
 	if err != nil {
@@ -127,10 +127,10 @@ func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 		if err != nil {
 			return err
 		}
-		return errorBody
+		return &errorBody
 	}
 
-	return errors.New("Failed to delete")
+	return errors.New("failed to delete")
 }
 
 //GetSubdomainName Returns subdomain name of a given subdomain id
@@ -153,7 +153,7 @@ func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, erro
 		if err != nil {
 			return "", err
 		}
-		return "", errObject
+		return "", &errObject
 	}
 	subdomain := new(Subdomain)
 	err = jsonapi.UnmarshalPayload(resp.Body, subdomain)
@@ -190,13 +190,12 @@ func (restClient *RestClient) getSubdomainID(subdomainName string) (string, erro
 	if err != nil {
 		return "", errorUnableToParse
 	}
-	for _, subdomain := range subdomains {
-		s, _ := subdomain.(*Subdomain)
-		if s.ID != "" {
-			return s.ID, nil
-		}
+	if len(subdomains) == 0 {
 		return "", errorUnownedSubdomain
 	}
-
-	return "", errorUnownedSubdomain
+	s, _ := subdomains[0].(*Subdomain)
+	if s.ID == "" {
+		return "", errorUnownedSubdomain
+	}
+	return s.ID, nil
 }

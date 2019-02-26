@@ -21,39 +21,6 @@ type Tunnel struct {
 	Subdomain *Subdomain `jsonapi:"relation,subdomain,omitempty"`
 }
 
-func (restClient *RestClient) listTunnelAPI() ([]Tunnel, error) {
-	tunnelList := []Tunnel{}
-	url := restClient.URL + "/tunnels"
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return tunnelList, errorCantConnectRestCall
-	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
-	resp, err := restClient.Client.Do(req)
-	if err != nil {
-		return nil, errorCantConnectRestCall
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode > 399 {
-		errObject := new(jsonapi.ErrorObject)
-		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
-		if err != nil {
-			return tunnelList, err
-		}
-		return tunnelList, errObject
-	}
-	responseBody, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Tunnel)))
-	if err != nil {
-		return tunnelList, errorUnableToParse
-	}
-	for _, tunnel := range responseBody {
-		t, _ := tunnel.(*Tunnel)
-		tunnelList = append(tunnelList, *t)
-	}
-
-	return tunnelList, nil
-}
-
 //CreateTunnelAPI calls holepunch web api to get tunnel details
 func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string, protocol []string) (Tunnel, error) {
 	tunnelReturn := Tunnel{}
@@ -106,7 +73,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 		if err != nil {
 			return tunnelReturn, err
 		}
-		return tunnelReturn, errObject
+		return tunnelReturn, &errObject
 	}
 	err = jsonapi.UnmarshalPayload(resp.Body, &tunnelReturn)
 	if err != nil {
@@ -146,7 +113,7 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 		if err != nil {
 			return err
 		}
-		return errorBody
+		return &errorBody
 	}
 
 	return errorUnableToDelete
@@ -170,20 +137,19 @@ func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) 
 		if err != nil {
 			return "", err
 		}
-		return "", errObject
+		return "", &errObject
 	}
 
 	tunnels, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Tunnel)))
 	if err != nil {
 		return "", errorUnableToParse
 	}
-	for _, tunnel := range tunnels {
-		t, _ := tunnel.(*Tunnel)
-		if t.ID != "" {
-			return t.ID, nil
-		}
+	if len(tunnels) == 0 {
 		return "", errorUnownedTunnel
 	}
-
-	return "", errorUnownedTunnel
+	t, _ := tunnels[0].(*Tunnel)
+	if t.ID == "" {
+		return "", errorUnownedTunnel
+	}
+	return t.ID, nil
 }

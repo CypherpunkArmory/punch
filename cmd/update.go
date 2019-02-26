@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/blang/semver"
 	"github.com/rhysd/go-github-selfupdate/selfupdate"
@@ -41,16 +42,16 @@ func confirmAndSelfUpdate() {
 	}
 
 	var input string
-	fmt.Print("Do you want to update to: ", latest.Version, "? (y/n): ")
-	_, err = fmt.Scanln(&input)
-	if err != nil || (input != "y" && input != "n") {
+	fmt.Print("Do you want to update to: ", latest.Version, "? (Y/n): ")
+	fmt.Scanln(&input)
+	input = strings.ToLower(input)
+	if input != "" && !strings.HasPrefix(input, "y") && !strings.HasPrefix(input, "n") {
 		log.Println("Invalid input")
+		os.Exit(1)
+	}
+	if strings.HasPrefix(input, "n") {
 		return
 	}
-	if input == "n\n" {
-		return
-	}
-
 	exe, err := os.Executable()
 	if err != nil {
 		log.Println("Could not locate executable path")

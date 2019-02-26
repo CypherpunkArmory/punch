@@ -111,12 +111,7 @@ func initConfig() {
 func tryStartSession() error {
 	if refreshToken == "" {
 		fmt.Println("You need to login using `punch login` first.")
-		return errors.New("No refresh token")
-	}
-
-	restAPI = restapi.RestClient{
-		URL:          apiEndpoint,
-		RefreshToken: refreshToken,
+		return errors.New("no refresh token")
 	}
 
 	// StartSession will set the internal state of the RestClient
@@ -126,7 +121,7 @@ func tryStartSession() error {
 	if err != nil {
 		fmt.Println("Error starting session")
 		fmt.Println("You need to login using `punch login` first.")
-		return errors.New("Error starting session")
+		return errors.New("error starting session")
 	}
 	return nil
 }
@@ -145,14 +140,19 @@ func tryReadConfig() (err error) {
 		refreshToken = viper.GetString("apikey")
 		baseURL = viper.GetString("baseurl")
 		publicKeyPath = viper.GetString("publickeypath")
-		privateKeyPath = fixFilePath(publicKeyPath)
 		privateKeyPath = viper.GetString("privatekeypath")
-		privateKeyPath = fixFilePath(privateKeyPath)
 		apiEndpoint = viper.GetString("apiendpoint")
+
+		privateKeyPath = fixFilePath(publicKeyPath)
+		privateKeyPath = fixFilePath(privateKeyPath)
 	} else {
 		if _, err := os.Stat(configPath + string(os.PathSeparator) + ".punch.toml"); err != nil {
 			if os.IsNotExist(err) {
-				os.MkdirAll(configPath, os.ModePerm)
+				err = os.MkdirAll(configPath, os.ModePerm)
+				if err != nil {
+					fmt.Println("Couldn't generate default config file")
+					return err
+				}
 				err = viper.WriteConfigAs(configPath + string(os.PathSeparator) + ".punch.toml")
 				if err != nil {
 					fmt.Println("Couldn't generate default config file")
@@ -161,12 +161,15 @@ func tryReadConfig() (err error) {
 			}
 		} else {
 			fmt.Println("You have an issue in your current config")
-			return errors.New("Configuration Error")
+			return errors.New("configuration error")
 		}
 
 		fmt.Println("Generated default config.")
 		_ = tryReadConfig()
 	}
-
+	restAPI = restapi.RestClient{
+		URL:          apiEndpoint,
+		RefreshToken: refreshToken,
+	}
 	return nil
 }

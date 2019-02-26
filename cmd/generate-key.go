@@ -62,10 +62,10 @@ func generateKey(keyPath string, fileName string) error {
 	}
 	// generate and write private key as PEM
 	privateKeyFile, err := os.Create(keyPath + fileName + ".pem")
-	defer privateKeyFile.Close()
 	if err != nil {
 		return err
 	}
+	defer privateKeyFile.Close()
 	privateKeyPEM := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
 	if errEncode := pem.Encode(privateKeyFile, privateKeyPEM); errEncode != nil {
 		return errEncode

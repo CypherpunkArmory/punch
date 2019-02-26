@@ -51,12 +51,12 @@ func getTunnelConfig(input string) (tunnelConf, error) {
 	var err error
 	conf := strings.Split(input, ":")
 	if len(conf) != 2 {
-		return output, errors.New("Bad input")
+		return output, errors.New("bad input")
 	}
 	output.forwardType = conf[0]
 	output.port, err = strconv.Atoi(conf[1])
 	if err != nil {
-		return output, errors.New("Bad input")
+		return output, errors.New("bad input")
 	}
 	return output, nil
 }
@@ -112,7 +112,7 @@ func tunnelMultiple(confs []tunnelConf) {
 	var wg sync.WaitGroup
 	wg.Add(len(tunnelConfigs))
 	for i := 0; i < len(tunnelConfigs); i++ {
-		go tunnel.StartReverseTunnel(tunnelConfigs[i], &wg)
+		go tunnel.StartReverseTunnel(&tunnelConfigs[i], &wg)
 	}
 	wg.Wait()
 

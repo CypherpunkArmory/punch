@@ -44,7 +44,7 @@ func (restClient *RestClient) StartSession(refreshToken string) error {
 		if err != nil {
 			return err
 		}
-		return errorBody
+		return &errorBody
 	}
 
 	err = json.Unmarshal(body, &responseBody)
@@ -85,7 +85,7 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 		if err != nil {
 			return responseBody, err
 		}
-		return responseBody, errorBody
+		return responseBody, &errorBody
 	}
 
 	err = json.Unmarshal(body, &responseBody)

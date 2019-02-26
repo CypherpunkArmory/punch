@@ -1,8 +1,8 @@
 package restapi
 
-import(
+import (
 	"net/http"
-) 
+)
 
 //RestClient A stuct to hold persistent data that is used between rest calls
 type RestClient struct {

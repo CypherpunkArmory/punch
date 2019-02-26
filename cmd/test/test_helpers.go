@@ -10,13 +10,15 @@ import (
 	"github.com/rendon/testcli"
 	"github.com/spf13/viper"
 )
+
 const WINDOWS = "windows"
+
 func getConfigPath() string {
-	if runtime.GOOS ==WINDOWS {
+	if runtime.GOOS == WINDOWS {
 		home, _ := homedir.Dir()
 		return home + "\\punch_test.toml"
 	}
-	return "/tmp/punch.toml"
+	return "/tmp/punch_test.toml"
 }
 
 func getExePath() string {
@@ -26,9 +28,6 @@ func getExePath() string {
 	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch"
 }
 func getKeyPath() string {
-	if runtime.GOOS == WINDOWS {
-		return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator)
-	}
 	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator)
 }
 
