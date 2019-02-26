@@ -47,7 +47,7 @@ func confirmAndSelfUpdate() {
 	input = strings.ToLower(input)
 	if input != "" && !strings.HasPrefix(input, "y") && !strings.HasPrefix(input, "n") {
 		log.Println("Invalid input")
-		os.Exit(1)
+		return
 	}
 	if strings.HasPrefix(input, "n") {
 		return
