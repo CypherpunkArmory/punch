@@ -84,7 +84,7 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 	defer wg.Done()
 	listener, err := createTunnel(tunnelConfig)
-	if err!=nil{
+	if err != nil {
 		return
 	}
 	defer listener.Close()
@@ -129,7 +129,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 
 }
 
-func createTunnel(tunnelConfig *Config)(net.Listener,error){
+func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 	var listener net.Listener
 	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
 	remoteEndpointPort := 3000

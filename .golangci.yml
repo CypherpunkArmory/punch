@@ -35,6 +35,7 @@ linters:
     - prealloc
     - gochecknoglobals
     - gochecknoinits
+    - unconvert
 
 issues:
   exclude-rules:
@@ -45,7 +46,7 @@ issues:
       text: "(viper.|MarkFlag|telnet)"
       linters:
         - errcheck
-    - path: tunnel/tunnel
+    - path: tunnel/tunnel.go
       text: "InsecureIgnoreHostKey"
       linters:
         - gosec
