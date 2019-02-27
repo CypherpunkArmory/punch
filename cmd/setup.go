@@ -56,7 +56,7 @@ func setupLogin() {
 		os.Exit(1)
 	}
 	fmt.Print("Enter Password: ")
-	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		fmt.Println("Error reading password")
 		os.Exit(1)

@@ -68,7 +68,7 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 		return ssh.PublicKeys(key), nil
 	}
 	fmt.Println("Your password: ")
-	bytePassword, err := terminal.ReadPassword(syscall.Stdin)
+	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return nil, errors.New("could not read your password " + err.Error())
 	}
@@ -83,109 +83,15 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 	defer wg.Done()
-	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
-	remoteEndpointPort := 3000
-	if tunnelConfig.EndpointType == "https" {
-		remoteEndpointPort = 3001
+	listener, err := createTunnel(tunnelConfig)
+	if err!=nil{
+		return
 	}
-	// local service to be forwarded
+	defer listener.Close()
 	var localEndpoint = endpoint{
 		Host: "0.0.0.0",
 		Port: tunnelConfig.LocalPort,
 	}
-	var jumpServerEndpoint = endpoint{
-		Host: "api.holepunch.io",
-		Port: 22,
-	}
-	// remote SSH server
-	var serverEndpoint = endpoint{
-		Host: tunnelConfig.TunnelEndpoint.IPAddress,
-		Port: sshPort,
-	}
-
-	// remote forwarding port (on remote SSH server network)
-	var remoteEndpoint = endpoint{
-		Host: "localhost",
-		Port: remoteEndpointPort,
-	}
-
-	privateKey, err := privateKeyFile(tunnelConfig.PrivateKeyPath)
-	if err != nil {
-		fmt.Println(err.Error())
-		err = tunnelConfig.RestAPI.StartSession(tunnelConfig.RestAPI.RefreshToken)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
-		err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
-		return
-	}
-	sshConfig := &ssh.ClientConfig{
-		User: "punch",
-		Auth: []ssh.AuthMethod{
-			privateKey,
-			ssh.Password(""),
-		},
-		//TODO: Maybe fix this. Will be rotating so dont know if possible
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         0,
-	}
-
-	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
-	if err != nil {
-		err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
-		fmt.Printf("dial INTO jump server error: %s", err)
-		return
-	}
-	defer jumpConn.Close()
-	// Connect to SSH remote server using serverEndpoint
-	var serverConn net.Conn
-	serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-	if err != nil {
-		rollbar.Message("error", "SSH fail(Jump to Remote): "+err.Error())
-		rollbar.Wait()
-		fmt.Println("Failed to connect. Trying again in 10 seconds")
-		time.Sleep(10 * time.Second)
-		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-		if err != nil {
-			rollbar.Message("error", "SSH failed twice(Jump to Remote): "+err.Error())
-			rollbar.Wait()
-			err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-			if err != nil {
-				fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-			}
-			fmt.Printf("dial INTO remote server error: %s", err)
-			return
-		}
-	}
-	defer serverConn.Close()
-	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
-	if err != nil {
-		err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
-		return
-	}
-
-	sClient := ssh.NewClient(ncc, chans, reqs)
-	// Listen on remote server port
-	listener, err := sClient.Listen("tcp", remoteEndpoint.String())
-	if err != nil {
-		err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
-		fmt.Printf("listen open port ON remote server error: %s", err)
-		return
-	}
-	defer listener.Close()
-
 	// This catches CTRL C and closes the ssh
 	c := make(chan os.Signal)
 	signal.Notify(c,
@@ -221,4 +127,98 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		}
 	}
 
+}
+
+func createTunnel(tunnelConfig *Config)(net.Listener,error){
+	var listener net.Listener
+	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
+	remoteEndpointPort := 3000
+	if tunnelConfig.EndpointType == "https" {
+		remoteEndpointPort = 3001
+	}
+	var jumpServerEndpoint = endpoint{
+		Host: "api.holepunch.io",
+		Port: 22,
+	}
+	// remote SSH server
+	var serverEndpoint = endpoint{
+		Host: tunnelConfig.TunnelEndpoint.IPAddress,
+		Port: sshPort,
+	}
+
+	// remote forwarding port (on remote SSH server network)
+	var remoteEndpoint = endpoint{
+		Host: "localhost",
+		Port: remoteEndpointPort,
+	}
+
+	privateKey, err := privateKeyFile(tunnelConfig.PrivateKeyPath)
+	if err != nil {
+		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
+		if errDelete != nil {
+			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
+		}
+		return listener, err
+	}
+	sshConfig := &ssh.ClientConfig{
+		User: "punch",
+		Auth: []ssh.AuthMethod{
+			privateKey,
+			ssh.Password(""),
+		},
+		//TODO: Maybe fix this. Will be rotating so dont know if possible
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         0,
+	}
+
+	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
+	if err != nil {
+		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
+		if errDelete != nil {
+			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
+		}
+		fmt.Printf("dial INTO jump server error: %s", err)
+		return listener, err
+	}
+	// Connect to SSH remote server using serverEndpoint
+	var serverConn net.Conn
+	serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
+	if err != nil {
+		rollbar.Message("error", "SSH fail(Jump to Remote): "+err.Error())
+		rollbar.Wait()
+		fmt.Println("Failed to connect. Trying again in 10 seconds")
+		time.Sleep(10 * time.Second)
+		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
+		if err != nil {
+			rollbar.Message("error", "SSH failed twice(Jump to Remote): "+err.Error())
+			rollbar.Wait()
+			errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
+			if errDelete != nil {
+				fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
+			}
+			fmt.Printf("dial INTO remote server error: %s", err)
+			return listener, err
+		}
+	}
+	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
+	if err != nil {
+		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
+		if errDelete != nil {
+			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
+		}
+		return listener, err
+	}
+
+	sClient := ssh.NewClient(ncc, chans, reqs)
+	// Listen on remote server port
+	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
+	if err != nil {
+		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
+		if errDelete != nil {
+			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
+		}
+		fmt.Printf("listen open port ON remote server error: %s", err)
+		return listener, err
+	}
+	return listener, nil
 }
