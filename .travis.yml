@@ -7,7 +7,7 @@ env:
 # responsibility to keep their compilers up to date.
 go:
   - 1.11.x
-  
+
 cache:
   directories:
     - $HOME/.cache/go-build
@@ -28,7 +28,7 @@ notifications:
   email: false
 
 script:
-  - go test ./... tags=unit
+  - go test ./... -tags unit
   - make ROLLBAR_TOKEN=${ROLLBAR_TOKEN} VERSION=${TRAVIS_TAG} all   
 
 deploy:
