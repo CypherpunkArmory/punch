@@ -12,11 +12,6 @@ go:
 git:
   depth: 1
 
-branches:
-  only:
-  - /\d+\.\d+\.\d+/
-  - master
-
 install: true
 # Don't email me the results of the test runs.
 notifications:
