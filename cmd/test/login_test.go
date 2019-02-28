@@ -24,7 +24,7 @@ func TestLogin(t *testing.T) {
 	p := testcli.Command(exePath, "login", "--config", configPath)
 	p.Run()
 	if !p.Failure() {
-		t.Fatalf("Expected punch login to fail, but it succeeed.")
+		t.Fatalf("Expected punch login to fail, but it succeed.")
 	}
 
 	if !p.StdoutContains("required flag(s) \"password\", \"username\" not set") {
@@ -38,7 +38,7 @@ func TestLoginSetsTOML(t *testing.T) {
 	p.Run()
 
 	if !p.Success() {
-		t.Fatalf("Expected punch login to succeeed, but it failed.")
+		t.Fatalf("Expected punch login to succeed, but it failed.")
 	}
 
 	fmt.Println(p.Stdout())

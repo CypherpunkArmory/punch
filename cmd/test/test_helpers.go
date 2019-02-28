@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-const WINDOWS = "windows"
+const windows = "windows"
 
 func getConfigPath() string {
-	if runtime.GOOS == WINDOWS {
+	if runtime.GOOS == windows {
 		home, _ := homedir.Dir()
 		return home + "\\punch_test.toml"
 	}
@@ -22,7 +22,7 @@ func getConfigPath() string {
 }
 
 func getExePath() string {
-	if runtime.GOOS == WINDOWS {
+	if runtime.GOOS == windows {
 		return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch.exe"
 	}
 	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch"
