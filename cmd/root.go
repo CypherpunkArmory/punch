@@ -143,7 +143,7 @@ func tryReadConfig() (err error) {
 		privateKeyPath = viper.GetString("privatekeypath")
 		apiEndpoint = viper.GetString("apiendpoint")
 
-		privateKeyPath = fixFilePath(publicKeyPath)
+		publicKeyPath = fixFilePath(publicKeyPath)
 		privateKeyPath = fixFilePath(privateKeyPath)
 	} else {
 		if _, err := os.Stat(configPath + string(os.PathSeparator) + ".punch.toml"); err != nil {

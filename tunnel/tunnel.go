@@ -32,7 +32,7 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	go func() {
 		_, err := io.Copy(client, remote)
 		if err != nil {
-			chDone <- false
+			//chDone <- false
 		}
 		chDone <- true
 	}()
@@ -41,7 +41,7 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	go func() {
 		_, err := io.Copy(remote, client)
 		if err != nil {
-			chDone <- false
+			//chDone <- false
 		}
 		chDone <- true
 	}()
@@ -54,10 +54,10 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 		return nil, errors.New("cannot read SSH key file " + path)
 	}
 	if len(buffer) == 0 {
-		return nil, errors.New("bad key file")
+		return nil, errors.New("bad key file empty file")
 	}
-	block, rest := pem.Decode(buffer)
-	if len(rest) > 0 {
+	block, _ := pem.Decode(buffer)
+	if block == nil {
 		return nil, errors.New("bad key file")
 	}
 	if !x509.IsEncryptedPEMBlock(block) {
@@ -82,9 +82,12 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
-	defer wg.Done()
+	if wg != nil {
+		defer wg.Done()
+	}
 	listener, err := createTunnel(tunnelConfig)
 	if err != nil {
+		fmt.Println(err.Error())
 		return
 	}
 	defer listener.Close()
@@ -113,6 +116,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		if err != nil {
 			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
 		}
+		os.Exit(0)
 	}()
 
 	fmt.Printf("Now forwarding localhost:%d to %s://%s.%s\n",
