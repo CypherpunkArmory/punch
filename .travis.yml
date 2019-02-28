@@ -28,7 +28,8 @@ notifications:
   email: false
 
 script:
-  - go test ./... -tags unit
+  - go test ./... -tags unit -coverprofile=coverage.out
+  - godacov -t ${CODACY_TOKEN} -r ./coverage.out -c ${TRAVIS_COMMIT}
   - make ROLLBAR_TOKEN=${ROLLBAR_TOKEN} VERSION=${TRAVIS_TAG} all   
 
 deploy:

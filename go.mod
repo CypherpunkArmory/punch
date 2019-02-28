@@ -17,6 +17,7 @@ require (
 	github.com/rhysd/go-github-selfupdate v1.1.0
 	github.com/rollbar/rollbar-go v1.0.2
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
+	github.com/schrej/godacov v0.0.0-20190125092634-4fb4590e84a1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1
