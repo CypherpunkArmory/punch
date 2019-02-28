@@ -32,7 +32,6 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	go func() {
 		_, err := io.Copy(client, remote)
 		if err != nil {
-			//chDone <- false
 		}
 		chDone <- true
 	}()
@@ -41,7 +40,6 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	go func() {
 		_, err := io.Copy(remote, client)
 		if err != nil {
-			//chDone <- false
 		}
 		chDone <- true
 	}()
