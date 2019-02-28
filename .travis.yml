@@ -27,6 +27,8 @@ install: true
 notifications:
   email: false
 
+before_script:
+  - go get github.com/schrej/godacov
 script:
   - go test ./... -tags unit -coverprofile=coverage.out
   - godacov -t ${CODACY_TOKEN} -r ./coverage.out -c ${TRAVIS_COMMIT}
