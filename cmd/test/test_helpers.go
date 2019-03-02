@@ -11,24 +11,23 @@ import (
 	"github.com/spf13/viper"
 )
 
+const windows = "windows"
+
 func getConfigPath() string {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windows {
 		home, _ := homedir.Dir()
 		return home + "\\punch_test.toml"
 	}
-	return "/tmp/punch.toml"
+	return "/tmp/punch_test.toml"
 }
 
 func getExePath() string {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == windows {
 		return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch.exe"
 	}
 	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "punch"
 }
 func getKeyPath() string {
-	if runtime.GOOS == "windows" {
-		return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator)
-	}
 	return ".." + string(os.PathSeparator) + ".." + string(os.PathSeparator)
 }
 
@@ -38,7 +37,10 @@ var exePath = getExePath()
 func createConfig(t *testing.T) func() {
 	t.Helper()
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		os.Create(configPath)
+		_, err = os.Create(configPath)
+		if err != nil {
+			t.Fatalf("Cant create config file")
+		}
 		initTestConfig(t)
 	}
 	return func() {

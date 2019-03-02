@@ -65,5 +65,5 @@ func tunnelHTTPS() {
 		LocalPort:      port,
 		Subdomain:      subdomain,
 	}
-	tunnel.StartReverseTunnel(tunnelConfig, nil)
+	tunnel.StartReverseTunnel(&tunnelConfig, nil)
 }

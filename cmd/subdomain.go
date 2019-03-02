@@ -39,12 +39,12 @@ func subdomainList() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	printSubdomains(&response)
+	printSubdomains(response)
 }
 
-func printSubdomains(response *[]restapi.Subdomain) {
-	var data [][]string
-	for _, elem := range *response {
+func printSubdomains(response []restapi.Subdomain) {
+	var data = make([][]string, len(response))
+	for _, elem := range response {
 		reserved := strconv.FormatBool(elem.Reserved)
 		inuse := strconv.FormatBool(elem.InUse)
 		data = append(data, []string{elem.Name, reserved, inuse})

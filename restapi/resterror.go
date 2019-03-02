@@ -5,11 +5,11 @@ import (
 	"fmt"
 )
 
-var errorUnownedSubdomain = errors.New("You do not own this subdomain")
-var errorCantConnectRestCall = errors.New("Problem contacting the server")
-var errorUnableToParse = errors.New("Can't parse the json response")
-var errorUnownedTunnel = errors.New("You do not own this subdomain")
-var errorUnableToDelete = errors.New("Failed to delete")
+var errorUnownedSubdomain = errors.New("you do not own this subdomain")
+var errorCantConnectRestCall = errors.New("problem contacting the server")
+var errorUnableToParse = errors.New("can't parse the json response")
+var errorUnownedTunnel = errors.New("you do not own this subdomain")
+var errorUnableToDelete = errors.New("failed to delete")
 
 //ResponseError JSONapi response error
 type ResponseError struct {
@@ -24,6 +24,6 @@ type ResponseError struct {
 	} `json:"data"`
 }
 
-func (e ResponseError) Error() string {
-	return fmt.Sprintf("%s", e.Data.Attributes.Detail)
+func (e *ResponseError) Error() string {
+	return fmt.Sprintf(e.Data.Attributes.Detail)
 }

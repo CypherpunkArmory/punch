@@ -22,12 +22,12 @@ func init() {
 	rootCmd.AddCommand(cleanupCmd)
 }
 
-func cleanup(Subdomain string) {
-	if !checkSubdomain(Subdomain) {
+func cleanup(openSubdomain string) {
+	if !checkSubdomain(openSubdomain) {
 		fmt.Println("Invalid Subdomain")
 		os.Exit(1)
 	}
-	err := restAPI.DeleteTunnelAPI(Subdomain)
+	err := restAPI.DeleteTunnelAPI(openSubdomain)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
