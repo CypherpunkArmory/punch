@@ -108,7 +108,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		err := tunnelConfig.RestAPI.StartSession(tunnelConfig.RestAPI.RefreshToken)
 		if err != nil {
 			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-			return
+			os.Exit(0)
 		}
 		err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
 		if err != nil {

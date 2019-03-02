@@ -47,7 +47,7 @@ var rootCmd = &cobra.Command{
 		rollbar.SetCodeVersion(version)
 		rollbar.SetServerRoot("github.com/CypherpunkArmory/punch")
 		rollbar.SetCaptureIp(rollbar.CaptureIpNone)
-		rollbar.SetEnabled(crashReporting && apiEndpoint == "http://api.holepunch.io")
+		rollbar.SetEnabled(crashReporting && apiEndpoint == "https://api.holepunch.io")
 	},
 }
 
@@ -66,10 +66,10 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is ~/.punch)")
 	rootCmd.PersistentFlags().StringVar(&apiToken, "apikey", "", "Your holepunch API key")
 	rootCmd.PersistentFlags().StringVar(&baseURL, "baseurl", "", "Holepunch server to use - (default is holepunch.io)")
-	rootCmd.PersistentFlags().StringVar(&apiEndpoint, "apiendpoint", "", "Holepunch server to use - (default is http://api.holepunch.io)")
+	rootCmd.PersistentFlags().StringVar(&apiEndpoint, "apiendpoint", "", "Holepunch server to use - (default is https://api.holepunch.io)")
 	rootCmd.PersistentFlags().StringVar(&publicKeyPath, "publickeypath", "", "Path to your public keys - (~/.ssh)")
 	rootCmd.PersistentFlags().StringVar(&privateKeyPath, "privatekeypath", "", "Path to your private keys - (~/.ssh)")
-	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers")
+	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers(Set true by default in beta)")
 
 	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
 	viper.BindPFlag("baseurl", rootCmd.PersistentFlags().Lookup("baseurl"))
@@ -77,9 +77,9 @@ func init() {
 	viper.BindPFlag("publickeypath", rootCmd.PersistentFlags().Lookup("publickeypath"))
 	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
 	viper.BindPFlag("crashreporting", rootCmd.PersistentFlags().Lookup("crashreporting"))
-	viper.SetDefault("crashreporting", false)
+	viper.SetDefault("crashreporting", true)
 	viper.SetDefault("baseurl", "holepunch.io")
-	viper.SetDefault("apiendpoint", "http://api.holepunch.io")
+	viper.SetDefault("apiendpoint", "https://api.holepunch.io")
 	viper.SetDefault("publickeypath", "")
 	viper.SetDefault("privatekeypath", "")
 	rootCmd.SetHelpCommand(&cobra.Command{
@@ -142,6 +142,7 @@ func tryReadConfig() (err error) {
 		publicKeyPath = viper.GetString("publickeypath")
 		privateKeyPath = viper.GetString("privatekeypath")
 		apiEndpoint = viper.GetString("apiendpoint")
+		crashReporting = viper.GetBool("crashreporting")
 
 		publicKeyPath = fixFilePath(publicKeyPath)
 		privateKeyPath = fixFilePath(privateKeyPath)
