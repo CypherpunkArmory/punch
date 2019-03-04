@@ -51,7 +51,7 @@ jobs: # basic units of work in a run
       - persist_to_workspace:
           root: .
           paths:
-            - punch/output/            
+            - punch/output/*            
 
   publish-github-release:
     docker:
