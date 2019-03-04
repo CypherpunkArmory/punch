@@ -11,6 +11,11 @@ jobs: # basic units of work in a run
     working_directory: /tmp/punch
 
     steps: # steps that comprise the `build` job
+      - persist_to_workspace:
+          root: .
+          paths:
+            - output/
+
       - checkout # check out source code to working directory
       - run: mkdir -p $TEST_RESULTS
       - run: mkdir /tmp/punch/output
@@ -33,7 +38,14 @@ jobs: # basic units of work in a run
             go test ./... -tags unit -coverprofile=$TEST_RESULTS/coverage.out
             godacov -t $CODACY_TOKEN -r $TEST_RESULTS/coverage.out -c $CIRCLE_SHA1
 
-      - run:  make ROLLBAR_TOKEN=$ROLLBAR_TOKEN VERSION=$CIRCLE_TAG all   
+
+      - run:  
+          name: Build all
+          command: |
+            make ROLLBAR_TOKEN=$ROLLBAR_TOKEN VERSION=$CIRCLE_TAG all   
+
+      - store_artifacts:
+            path: /tmp/punch/output
 
       - save_cache: # Store cache in the /go/pkg directory
           key: v1-pkg-cache
@@ -49,14 +61,14 @@ jobs: # basic units of work in a run
       
     steps:
       - attach_workspace:
-          at: /tmp/punch/output
+          at: .
 
       - run:
           name: "Publish Release on GitHub"
           command: |
             go get github.com/tcnksm/ghr
             VERSION=$CIRCLE_TAG
-            ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/punch/output
+            ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} output/
 
 workflows:
   version: 2
