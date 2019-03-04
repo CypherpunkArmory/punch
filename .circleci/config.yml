@@ -35,9 +35,6 @@ jobs: # basic units of work in a run
 
       - run:  make ROLLBAR_TOKEN=$ROLLBAR_TOKEN VERSION=$CIRCLE_TAG all   
 
-      - store_artifacts:
-          path: /tmp/punch/output
-
       - save_cache: # Store cache in the /go/pkg directory
           key: v1-pkg-cache
           paths:
@@ -47,22 +44,28 @@ jobs: # basic units of work in a run
             - $HOME/gopath/pkg/mod
 
   publish-github-release:
-    requires:
-      - build
-    filters:
-      tags:
-        only: /^\d+\.\d+\.\d+$/    
-
     docker:
       - image: circleci/golang:1.12
       
     steps:
       - attach_workspace:
-          at: ./artifacts
+          at: /tmp/punch/output
 
       - run:
           name: "Publish Release on GitHub"
           command: |
             go get github.com/tcnksm/ghr
             VERSION=$CIRCLE_TAG
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/punch/output
+            ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} /tmp/punch/output
+
+workflows:
+  version: 2
+  workflow:
+    jobs:
+      - build
+      - publish-github-release:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
