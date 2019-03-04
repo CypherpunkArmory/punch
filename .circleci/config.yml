@@ -12,7 +12,7 @@ jobs: # basic units of work in a run
 
     steps: # steps that comprise the `build` job
       - checkout # check out source code to working directory
-      - run: mkdir -p $TEST_RESULTS
+      - run: mkdir -p ${TEST_RESULTS}
       - run: mkdir /tmp/punch/output
 
       - restore_cache: # restores saved cache if no changes are detected since last run
@@ -29,22 +29,22 @@ jobs: # basic units of work in a run
     
           # Store the results of our tests in the $TEST_RESULTS directory
           command: |
-            go test ./... -tags unit -coverprofile=$TEST_RESULTS/coverage.out
-            godacov -t $CODACY_TOKEN -r $TEST_RESULTS/coverage.out -c $CIRCLE_SHA1
+            go test ./... -tags unit -coverprofile=${TEST_RESULTS}/coverage.out
+            godacov -t ${CODACY_TOKEN} -r ${TEST_RESULTS}/coverage.out -c $CIRCLE_SHA1
 
 
       - run:  
           name: Build all
           command: |
-            make ROLLBAR_TOKEN=$ROLLBAR_TOKEN VERSION=$CIRCLE_TAG all   
+            make ROLLBAR_TOKEN=${ROLLBAR_TOKEN} VERSION=${CIRCLE_TAG} all   
 
       - save_cache: # Store cache in the /go/pkg directory
           key: v1-pkg-cache
           paths:
             - "/go/package"
             - "/go/pkg/mod"
-            - $HOME/.cache/go-build
-            - $HOME/gopath/pkg/mod
+            - ${HOME}/.cache/go-build
+            - ${HOME}/gopath/pkg/mod
 
       
       - persist_to_workspace:
