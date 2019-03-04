@@ -15,11 +15,6 @@ jobs: # basic units of work in a run
       - run: mkdir -p $TEST_RESULTS
       - run: mkdir /tmp/punch/output
 
-      - persist_to_workspace:
-          root: .
-          paths:
-            - punch/output/
-
       - restore_cache: # restores saved cache if no changes are detected since last run
       # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
           keys:
@@ -51,6 +46,12 @@ jobs: # basic units of work in a run
             - "/go/pkg/mod"
             - $HOME/.cache/go-build
             - $HOME/gopath/pkg/mod
+
+      
+      - persist_to_workspace:
+          root: .
+          paths:
+            - punch/output/            
 
   publish-github-release:
     docker:
