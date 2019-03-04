@@ -63,6 +63,9 @@ workflows:
   workflow:
     jobs:
       - build
+          filters:
+            tags:
+              only: /.*/
       - publish-github-release:
           requires:
             - build
