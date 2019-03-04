@@ -22,7 +22,6 @@ jobs: # basic units of work in a run
 
       # Normally, this step would be in a custom primary image;
       # we've added it here for the sake of explanation.
-      - run: go get
       - run: go get github.com/schrej/godacov
 
       - run:
@@ -51,7 +50,7 @@ jobs: # basic units of work in a run
       - persist_to_workspace:
           root: .
           paths:
-            - punch/output/*            
+            - output/*            
 
   publish-github-release:
     docker:
@@ -66,7 +65,7 @@ jobs: # basic units of work in a run
           command: |
             go get github.com/tcnksm/ghr
             VERSION=$CIRCLE_TAG
-            ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} punch/output/
+            ghr -t ${GITHUB_TOKEN} -u ${GITHUB_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} output/
 
 workflows:
   version: 2
