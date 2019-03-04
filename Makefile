@@ -19,7 +19,7 @@ all: clean windows linux macos
 
 define build-os
 	$(foreach GOARCH, $(ARCHITECTURES), \
-		$(shell export GOOS=$(1); export GOARCH=$(GOARCH); go build ${LDFLAGS} -o output/$(BINARY)-$(1)-$(GOARCH)$(2); mkdir -p gh-pages/static/$(1)/$(GOARCH); cp output/$(BINARY)-$(1)-$(GOARCH)$(2) gh-pages/static/$(1)/$(GOARCH)/$(BINARY)$(2)))
+		$(shell export GOOS=$(1); export GOARCH=$(GOARCH); go build ${LDFLAGS} -o output/$(BINARY)-$(1)-$(GOARCH)$(2);))
 endef
 
 windows: 
