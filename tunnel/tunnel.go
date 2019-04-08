@@ -80,6 +80,7 @@ func privateKeyFile(path string) (ssh.AuthMethod, error) {
 
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
+	defer cleanup(tunnelConfig)
 	if wg != nil {
 		defer wg.Done()
 	}
@@ -105,15 +106,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 
 	go func() {
 		<-c
-		err := tunnelConfig.RestAPI.StartSession(tunnelConfig.RestAPI.RefreshToken)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-			os.Exit(0)
-		}
-		err = tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if err != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
+		cleanup(tunnelConfig)
 		os.Exit(0)
 	}()
 
@@ -132,6 +125,20 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 }
 
 func createTunnel(tunnelConfig *Config) (net.Listener, error) {
+	c := make(chan os.Signal)
+	signal.Notify(c,
+		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
+		syscall.SIGINT,  // Ctrl+C
+		syscall.SIGQUIT, // Ctrl-\
+		syscall.SIGHUP,  // "terminal is disconnected"
+	)
+
+	go func() {
+		<-c
+		cleanup(tunnelConfig)
+		os.Exit(0)
+	}()
 	var listener net.Listener
 	sshPort, _ := strconv.Atoi(tunnelConfig.TunnelEndpoint.SSHPort)
 	remoteEndpointPort := 3000
@@ -139,7 +146,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		remoteEndpointPort = 3001
 	}
 	var jumpServerEndpoint = endpoint{
-		Host: "api.holepunch.io",
+		Host: tunnelConfig.ConnectionEndpoint,
 		Port: 22,
 	}
 	// remote SSH server
@@ -156,10 +163,6 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 
 	privateKey, err := privateKeyFile(tunnelConfig.PrivateKeyPath)
 	if err != nil {
-		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if errDelete != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
 		return listener, err
 	}
 	sshConfig := &ssh.ClientConfig{
@@ -175,10 +178,6 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 
 	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
 	if err != nil {
-		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if errDelete != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
 		fmt.Printf("dial INTO jump server error: %s", err)
 		return listener, err
 	}
@@ -194,20 +193,12 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		if err != nil {
 			rollbar.Message("error", "SSH failed twice(Jump to Remote): "+err.Error())
 			rollbar.Wait()
-			errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-			if errDelete != nil {
-				fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-			}
 			fmt.Printf("dial INTO remote server error: %s", err)
 			return listener, err
 		}
 	}
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
 	if err != nil {
-		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if errDelete != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
 		return listener, err
 	}
 
@@ -215,12 +206,16 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 	// Listen on remote server port
 	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
-		errDelete := tunnelConfig.RestAPI.DeleteTunnelAPI(tunnelConfig.Subdomain)
-		if errDelete != nil {
-			fmt.Println("Could not delete tunnel. Use punch cleanup " + tunnelConfig.Subdomain)
-		}
 		fmt.Printf("listen open port ON remote server error: %s", err)
 		return listener, err
 	}
 	return listener, nil
+}
+
+func cleanup(config *Config) {
+	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
+	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
+	if errSession != nil || errDelete != nil {
+		fmt.Println("Could not delete tunnel. Use punch cleanup " + config.Subdomain)
+	}
 }

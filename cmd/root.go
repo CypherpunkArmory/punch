@@ -26,6 +26,7 @@ var publicKeyPath string
 var refreshToken string
 var restAPI restapi.RestClient
 var rollbarToken string
+var sshEndpoint string
 var subdomain string
 
 //This gets written in the makefile
@@ -69,7 +70,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&apiEndpoint, "apiendpoint", "", "Holepunch server to use - (default is https://api.holepunch.io)")
 	rootCmd.PersistentFlags().StringVar(&publicKeyPath, "publickeypath", "", "Path to your public keys - (~/.ssh)")
 	rootCmd.PersistentFlags().StringVar(&privateKeyPath, "privatekeypath", "", "Path to your private keys - (~/.ssh)")
-	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers(Set true by default in beta)")
+	rootCmd.PersistentFlags().StringVar(&sshEndpoint, "sshendpoint", "", "endpoint that ssh tunnel connects to, to get to internal network")
+	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers")
 
 	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
 	viper.BindPFlag("baseurl", rootCmd.PersistentFlags().Lookup("baseurl"))
@@ -77,8 +79,10 @@ func init() {
 	viper.BindPFlag("publickeypath", rootCmd.PersistentFlags().Lookup("publickeypath"))
 	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
 	viper.BindPFlag("crashreporting", rootCmd.PersistentFlags().Lookup("crashreporting"))
+	viper.BindPFlag("sshendpoint", rootCmd.PersistentFlags().Lookup("sshendpoint"))
 	viper.SetDefault("crashreporting", true)
 	viper.SetDefault("baseurl", "holepunch.io")
+	viper.SetDefault("sshendpoint", "api.holepunch.io")
 	viper.SetDefault("apiendpoint", "https://api.holepunch.io")
 	viper.SetDefault("publickeypath", "")
 	viper.SetDefault("privatekeypath", "")
@@ -142,6 +146,7 @@ func tryReadConfig() (err error) {
 		publicKeyPath = viper.GetString("publickeypath")
 		privateKeyPath = viper.GetString("privatekeypath")
 		apiEndpoint = viper.GetString("apiendpoint")
+		sshEndpoint = viper.GetString("sshendpoint")
 		crashReporting = viper.GetBool("crashreporting")
 
 		publicKeyPath = fixFilePath(publicKeyPath)

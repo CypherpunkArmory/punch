@@ -100,13 +100,14 @@ func tunnelMultiple(confs []tunnelConf) {
 			os.Exit(1)
 		}
 		tunnelConfigs[index] = tunnel.Config{
-			RestAPI:        restAPI,
-			TunnelEndpoint: response,
-			EndpointType:   conf.forwardType,
-			PrivateKeyPath: privateKeyPath,
-			EndpointURL:    baseURL,
-			LocalPort:      conf.port,
-			Subdomain:      subdomain,
+			ConnectionEndpoint: sshEndpoint,
+			RestAPI:            restAPI,
+			TunnelEndpoint:     response,
+			EndpointType:       conf.forwardType,
+			PrivateKeyPath:     privateKeyPath,
+			EndpointURL:        baseURL,
+			LocalPort:          conf.port,
+			Subdomain:          subdomain,
 		}
 	}
 	var wg sync.WaitGroup
