@@ -57,13 +57,14 @@ func tunnelHTTPS() {
 		subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
 	}
 	tunnelConfig := tunnel.Config{
-		RestAPI:        restAPI,
-		TunnelEndpoint: response,
-		EndpointType:   "https",
-		PrivateKeyPath: privateKeyPath,
-		EndpointURL:    baseURL,
-		LocalPort:      port,
-		Subdomain:      subdomain,
+		ConnectionEndpoint: sshEndpoint,
+		RestAPI:            restAPI,
+		TunnelEndpoint:     response,
+		EndpointType:       "https",
+		PrivateKeyPath:     privateKeyPath,
+		EndpointURL:        baseURL,
+		LocalPort:          port,
+		Subdomain:          subdomain,
 	}
 	tunnel.StartReverseTunnel(&tunnelConfig, nil)
 }

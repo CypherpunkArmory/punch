@@ -8,13 +8,14 @@ import (
 
 //Config Object to make passing config eaiser
 type Config struct {
-	RestAPI        restapi.RestClient
-	TunnelEndpoint restapi.Tunnel
-	PrivateKeyPath string
-	LocalPort      int
-	Subdomain      string
-	EndpointType   string
-	EndpointURL    string
+	ConnectionEndpoint string
+	RestAPI            restapi.RestClient
+	TunnelEndpoint     restapi.Tunnel
+	PrivateKeyPath     string
+	LocalPort          int
+	Subdomain          string
+	EndpointType       string
+	EndpointURL        string
 }
 
 type endpoint struct {
