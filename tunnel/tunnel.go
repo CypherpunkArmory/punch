@@ -15,7 +15,7 @@ import (
 	"syscall"
 	"time"
 
-	rollbar "github.com/rollbar/rollbar-go"
+	//rollbar "github.com/rollbar/rollbar-go"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -110,7 +110,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		os.Exit(0)
 	}()
 
-	fmt.Printf("Now forwarding localhost:%d to %s://%s.%s\n",
+	fmt.Printf("\nNow forwarding localhost:%d to %s://%s.%s\n",
 		tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
@@ -181,22 +181,18 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		fmt.Printf("dial INTO jump server error: %s", err)
 		return listener, err
 	}
+	fmt.Print("Starting tunnel.")
 	// Connect to SSH remote server using serverEndpoint
 	var serverConn net.Conn
-	serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-	if err != nil {
-		rollbar.Message("error", "SSH fail(Jump to Remote): "+err.Error())
-		rollbar.Wait()
-		fmt.Println("Failed to connect. Trying again in 10 seconds")
-		time.Sleep(10 * time.Second)
+	for {
 		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-		if err != nil {
-			rollbar.Message("error", "SSH failed twice(Jump to Remote): "+err.Error())
-			rollbar.Wait()
-			fmt.Printf("dial INTO remote server error: %s", err)
-			return listener, err
+		if err == nil {
+			break
 		}
+		fmt.Print(".")
+		time.Sleep(1 * time.Second)
 	}
+
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
 	if err != nil {
 		return listener, err
