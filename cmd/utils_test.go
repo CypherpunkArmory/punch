@@ -3,7 +3,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"testing"
@@ -97,10 +96,10 @@ func TestGetPublicKey(t *testing.T) {
 }
 func TestPrintError(t *testing.T) {
 	nonNilErrorMessage := capturer.CaptureStderr(func() {
-		printError(errors.New("Test"))
+		reportError("Test", false)
 	})
 	nilErrorMessage := capturer.CaptureStderr(func() {
-		printError(errors.New(""))
+		reportError("", false)
 	})
 	fmt.Println(nonNilErrorMessage)
 	fmt.Println(nilErrorMessage)

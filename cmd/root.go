@@ -58,8 +58,7 @@ var home, _ = homedir.Dir()
 //Execute is the entrypoint of cmd calls
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 }
 

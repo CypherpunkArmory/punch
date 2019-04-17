@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -39,8 +38,7 @@ var itCmd = &cobra.Command{
 				telnet.DialToAndCall("towel.blinkenlights.nl:23", caller)
 				os.Exit(1)
 			}
-			fmt.Fprintf(os.Stderr, "Input does not match the correct syntax type:port\n")
-			os.Exit(1)
+			reportError("Input does not match the correct syntax type:port", true)
 		}
 		tunnelMultiple(confs)
 	},
@@ -70,8 +68,7 @@ func tunnelMultiple(confs []tunnelConf) {
 	var tunnelConfigs = make([]tunnel.Config, len(confs))
 	protocol := make([]string, len(confs))
 	if subdomain != "" && !checkSubdomain(subdomain) {
-		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
-		os.Exit(1)
+		reportError("Invalid Subdomain", true)
 	}
 	publicKey, err := getPublicKey(publicKeyPath)
 	if err != nil {
@@ -82,8 +79,7 @@ func tunnelMultiple(confs []tunnelConf) {
 	}
 	response, err := restAPI.CreateTunnelAPI(subdomain, publicKey, protocol)
 	if err != nil {
-		printError(err)
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 	if subdomain == "" {
 		subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
@@ -91,12 +87,11 @@ func tunnelMultiple(confs []tunnelConf) {
 
 	for index, conf := range confs {
 		if !checkPort(conf.port) {
-			fmt.Println("Port is not in range[1-65535]")
+			reportError("Port is not in range[1-65535]", true)
 			err := restAPI.DeleteTunnelAPI(subdomain)
 			if err != nil {
-				fmt.Println("Could not delete tunnel. Use punch cleanup " + subdomain)
+				reportError("Could not delete tunnel. Use punch cleanup "+subdomain, true)
 			}
-			os.Exit(1)
 		}
 		tunnelConfigs[index] = tunnel.Config{
 			ConnectionEndpoint: sshEndpoint,

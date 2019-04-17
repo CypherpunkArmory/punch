@@ -35,10 +35,13 @@ func getPublicKey(path string) (string, error) {
 	return string(buf), nil
 }
 
-func printError(err error) {
-	if err.Error() == "" {
+func reportError(err string, exit bool) {
+	if err == "" {
 		fmt.Fprintf(os.Stderr, "Unexpected error occured\n")
-		return
+	} else {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
 	}
-	fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+	if exit {
+		os.Exit(1)
+	}
 }

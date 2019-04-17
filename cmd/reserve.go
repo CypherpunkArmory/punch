@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -26,14 +25,12 @@ func init() {
 
 func reserve() {
 	if !checkSubdomain(subdomain) {
-		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
-		os.Exit(1)
+		reportError("Invalid Subdomain", true)
 	}
 
 	response, err := restAPI.ReserveSubdomainAPI(subdomain)
 	if err != nil {
-		printError(err)
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 	fmt.Println("Successfully reserved subdomain " + response.Name)
 }

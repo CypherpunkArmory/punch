@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"strconv"
@@ -20,8 +19,7 @@ var httpsCmd = &cobra.Command{
 		var err error
 		port, err = strconv.Atoi(args[0])
 		if err != nil {
-			fmt.Println("Must supply a port to forward")
-			os.Exit(1)
+			reportError("Must supply a port to forward", true)
 		}
 		tunnelHTTPS()
 	},
@@ -34,12 +32,10 @@ func init() {
 }
 func tunnelHTTPS() {
 	if subdomain != "" && !checkSubdomain(subdomain) {
-		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
-		os.Exit(1)
+		reportError("Invalid subdomain", true)
 	}
 	if !checkPort(port) {
-		fmt.Fprintf(os.Stderr, "Port is not in range[1-65535]\n")
-		os.Exit(1)
+		reportError("Port is not in range[1-65535]", true)
 	}
 
 	publicKey, err := getPublicKey(publicKeyPath)
@@ -50,8 +46,7 @@ func tunnelHTTPS() {
 	protocol := []string{"https"}
 	response, err := restAPI.CreateTunnelAPI(subdomain, publicKey, protocol)
 	if err != nil {
-		printError(err)
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 	if subdomain == "" {
 		subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)

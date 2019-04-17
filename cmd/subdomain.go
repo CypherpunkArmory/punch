@@ -36,8 +36,7 @@ func init() {
 func subdomainList() {
 	response, err := restAPI.ListSubdomainAPI()
 	if err != nil {
-		printError(err)
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 	printSubdomains(response)
 }
