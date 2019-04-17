@@ -29,7 +29,7 @@ func cleanup(openSubdomain string) {
 	}
 	err := restAPI.DeleteTunnelAPI(openSubdomain)
 	if err != nil {
-		fmt.Println(err.Error())
+		printError(err)
 		os.Exit(1)
 	}
 	fmt.Println("Successfully closed tunnel")

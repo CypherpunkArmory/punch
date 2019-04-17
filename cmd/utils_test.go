@@ -3,6 +3,7 @@
 package cmd
 
 import (
+	"errors"
 	"path/filepath"
 	"testing"
 )
@@ -90,4 +91,11 @@ func TestGetPublicKey(t *testing.T) {
 			}
 		})
 	}
+}
+func ExamplePrintError() {
+	printError(errors.New("Test"))
+	printError(errors.New(""))
+	// Output:
+	// Test
+	// Unexpected error occured
 }

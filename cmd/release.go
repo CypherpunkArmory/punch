@@ -30,7 +30,7 @@ func release(subdomain string) {
 	}
 	err := restAPI.ReleaseSubdomainAPI(subdomain)
 	if err != nil {
-		fmt.Println(err.Error())
+		printError(err)
 		os.Exit(1)
 	}
 	fmt.Println("Successfully released subdomain")

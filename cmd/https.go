@@ -50,7 +50,7 @@ func tunnelHTTPS() {
 	protocol := []string{"https"}
 	response, err := restAPI.CreateTunnelAPI(subdomain, publicKey, protocol)
 	if err != nil {
-		fmt.Println(err.Error())
+		printError(err)
 		os.Exit(1)
 	}
 	if subdomain == "" {

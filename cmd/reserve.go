@@ -32,7 +32,7 @@ func reserve() {
 
 	response, err := restAPI.ReserveSubdomainAPI(subdomain)
 	if err != nil {
-		fmt.Println(err.Error())
+		printError(err)
 		os.Exit(1)
 	}
 	fmt.Println("Successfully reserved subdomain " + response.Name)
