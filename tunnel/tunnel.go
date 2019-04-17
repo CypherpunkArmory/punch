@@ -15,7 +15,8 @@ import (
 	"syscall"
 	"time"
 
-	rollbar "github.com/rollbar/rollbar-go"
+	"github.com/cypherpunkarmory/punch/backoff"
+	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -110,7 +111,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		os.Exit(0)
 	}()
 
-	fmt.Printf("Now forwarding localhost:%d to %s://%s.%s\n",
+	fmt.Printf("\rNow forwarding localhost:%d to %s://%s.%s\n",
 		tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
@@ -181,22 +182,26 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		fmt.Printf("dial INTO jump server error: %s", err)
 		return listener, err
 	}
+	tunnelStarted := false
+	go func() {
+		s := spin.New()
+		for !tunnelStarted {
+			fmt.Printf("\rStarting tunnel %s ", s.Next())
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+	exponentialBackoff := backoff.NewExponentialBackOff()
 	// Connect to SSH remote server using serverEndpoint
 	var serverConn net.Conn
-	serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-	if err != nil {
-		rollbar.Message("error", "SSH fail(Jump to Remote): "+err.Error())
-		rollbar.Wait()
-		fmt.Println("Failed to connect. Trying again in 10 seconds")
-		time.Sleep(10 * time.Second)
+	for {
 		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-		if err != nil {
-			rollbar.Message("error", "SSH failed twice(Jump to Remote): "+err.Error())
-			rollbar.Wait()
-			fmt.Printf("dial INTO remote server error: %s", err)
-			return listener, err
+		if err == nil {
+			tunnelStarted = true
+			break
 		}
+		time.Sleep(exponentialBackoff.NextBackOff())
 	}
+
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
 	if err != nil {
 		return listener, err
