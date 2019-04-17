@@ -15,7 +15,6 @@ import (
 	"syscall"
 	"time"
 
-	//rollbar "github.com/rollbar/rollbar-go"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -189,8 +188,8 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		if err == nil {
 			break
 		}
-		fmt.Print(".")
-		time.Sleep(1 * time.Second)
+		fmt.Print(".") // TODO: Use exponential backoff
+		time.Sleep(2 * time.Second)
 	}
 
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
