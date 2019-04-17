@@ -87,7 +87,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 	}
 	listener, err := createTunnel(tunnelConfig)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintf(os.Stderr, "%s", err.Error())
 		return
 	}
 	defer listener.Close()
@@ -179,7 +179,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 
 	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
 	if err != nil {
-		fmt.Printf("dial INTO jump server error: %s", err)
+		fmt.Fprintf(os.Stderr, "dial INTO jump server error: %s", err)
 		return listener, err
 	}
 	tunnelStarted := false
@@ -211,7 +211,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 	// Listen on remote server port
 	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
-		fmt.Printf("listen open port ON remote server error: %s", err)
+		fmt.Fprintf(os.Stderr, "listen open port ON remote server error: %s", err)
 		return listener, err
 	}
 	return listener, nil
@@ -221,6 +221,6 @@ func cleanup(config *Config) {
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
-		fmt.Println("Could not delete tunnel. Use punch cleanup " + config.Subdomain)
+		fmt.Fprintf(os.Stderr, "Could not delete tunnel. Use punch cleanup %s", config.Subdomain)
 	}
 }
