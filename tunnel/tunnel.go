@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cypherpunkarmory/punch/backoff"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -181,6 +182,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		return listener, err
 	}
 	fmt.Print("Starting tunnel.")
+	exponentialBackoff := backoff.NewExponentialBackOff()
 	// Connect to SSH remote server using serverEndpoint
 	var serverConn net.Conn
 	for {
@@ -189,7 +191,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 			break
 		}
 		fmt.Print(".") // TODO: Use exponential backoff
-		time.Sleep(2 * time.Second)
+		time.Sleep(exponentialBackoff.NextBackOff())
 	}
 
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
