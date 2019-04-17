@@ -1,9 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -34,16 +31,14 @@ func login() {
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {
-		fmt.Println("Login Failed: " + err.Error())
-		os.Exit(1)
+		reportError("Login Failed: "+err.Error(), true)
 	}
 
 	viper.Set("apikey", response.RefreshToken)
 	err = viper.WriteConfig()
 
 	if err != nil {
-		fmt.Println("Couldn't write refresh token to config - permissions maybe?")
-		os.Exit(1)
+		reportError("Couldn't write refresh token to config - permissions maybe?", true)
 	}
 
 }

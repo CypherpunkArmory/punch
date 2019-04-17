@@ -3,8 +3,11 @@
 package cmd
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
+
+	"github.com/kami-zh/go-capturer"
 )
 
 func TestCheckSubdomain(t *testing.T) {
@@ -90,4 +93,18 @@ func TestGetPublicKey(t *testing.T) {
 			}
 		})
 	}
+}
+func TestPrintError(t *testing.T) {
+	nonNilErrorMessage := capturer.CaptureStderr(func() {
+		reportError("Test", false)
+	})
+	nilErrorMessage := capturer.CaptureStderr(func() {
+		reportError("", false)
+	})
+	fmt.Println(nonNilErrorMessage)
+	fmt.Println(nilErrorMessage)
+
+	// Output:
+	// Test
+	// Unexpected error occured
 }

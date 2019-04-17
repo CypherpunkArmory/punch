@@ -16,7 +16,7 @@ func TestAskForLogin(t *testing.T) {
 	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 
-	require.Contains(t, p.Stdout(), "You need to login using `punch login` first.")
+	require.Contains(t, p.Stderr(), "You need to login using `punch login` first.")
 }
 
 func TestLogin(t *testing.T) {
@@ -27,7 +27,7 @@ func TestLogin(t *testing.T) {
 		t.Fatalf("Expected punch login to fail, but it succeed.")
 	}
 
-	if !p.StdoutContains("required flag(s) \"password\", \"username\" not set") {
+	if !p.StderrContains("required flag(s) \"password\", \"username\" not set") {
 		t.Fatalf("Expected password and username to be required.")
 	}
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -28,8 +29,19 @@ func getPublicKey(path string) (string, error) {
 	path = fixFilePath(path)
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Println("Unable to find public key. Either set correct path in .punch.toml or generate a key using `punch generate-key`")
+		reportError("Unable to find public key. Either set correct path in .punch.toml or generate a key using `punch generate-key`", false)
 		return "", err
 	}
 	return string(buf), nil
+}
+
+func reportError(err string, exit bool) {
+	if err == "" {
+		fmt.Fprintf(os.Stderr, "Unexpected error occured\n")
+	} else {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+	}
+	if exit {
+		os.Exit(1)
+	}
 }

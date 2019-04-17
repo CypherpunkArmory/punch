@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -24,13 +23,11 @@ func init() {
 
 func cleanup(openSubdomain string) {
 	if !checkSubdomain(openSubdomain) {
-		fmt.Println("Invalid Subdomain")
-		os.Exit(1)
+		reportError("Invalid Subdomain", true)
 	}
 	err := restAPI.DeleteTunnelAPI(openSubdomain)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 	fmt.Println("Successfully closed tunnel")
 

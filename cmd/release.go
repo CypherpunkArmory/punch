@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -25,13 +24,11 @@ func init() {
 
 func release(subdomain string) {
 	if !checkSubdomain(subdomain) {
-		fmt.Println("Invalid Subdomain")
-		os.Exit(1)
+		reportError("Invalid Subdomain", true)
 	}
 	err := restAPI.ReleaseSubdomainAPI(subdomain)
 	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		reportError(err.Error(), true)
 	}
 	fmt.Println("Successfully released subdomain")
 }

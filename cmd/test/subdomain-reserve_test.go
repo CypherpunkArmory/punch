@@ -18,7 +18,7 @@ func TestBadSubdomainReserve(t *testing.T) {
 	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain*/*/*/$$", "--config", configPath)
 	p.Run()
 
-	require.Equal(t, p.Stdout(), "Invalid Subdomain\n")
+	require.Equal(t, p.Stderr(), "Invalid Subdomain\n")
 	p = testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
@@ -58,7 +58,7 @@ func TestOwnedSubdomainReserve(t *testing.T) {
 
 	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
 	p.Run()
-	require.Equal(t, p.Stdout(), "Subdomain has already been reserved\n")
+	require.Equal(t, p.Stderr(), "Subdomain has already been reserved\n")
 
 	defer func() {
 		p := testcli.Command(exePath, "subdomain", "release", "testdomain", "--config", configPath)
