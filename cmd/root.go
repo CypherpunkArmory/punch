@@ -113,7 +113,7 @@ func initConfig() {
 
 func tryStartSession() error {
 	if refreshToken == "" {
-		fmt.Println("You need to login using `punch login` first.")
+		reportError("You need to login using `punch login` first.", false)
 		return errors.New("no refresh token")
 	}
 
@@ -122,8 +122,8 @@ func tryStartSession() error {
 	err := restAPI.StartSession(refreshToken)
 
 	if err != nil {
-		fmt.Println("Error starting session")
-		fmt.Println("You need to login using `punch login` first.")
+		reportError("Error starting session", false)
+		reportError("You need to login using `punch login` first.", false)
 		return errors.New("error starting session")
 	}
 	return nil
@@ -134,7 +134,7 @@ func tryReadConfig() (err error) {
 		// Use config file from the flag.
 		viper.SetConfigFile(configFile)
 		if _, err := os.Stat(configFile); os.IsNotExist(err) {
-			fmt.Println("Config file does not exist.")
+			reportError("Config file does not exist.", false)
 			return err
 		}
 	}
@@ -155,17 +155,17 @@ func tryReadConfig() (err error) {
 			if os.IsNotExist(err) {
 				err = os.MkdirAll(configPath, os.ModePerm)
 				if err != nil {
-					fmt.Println("Couldn't generate default config file")
+					reportError("Couldn't generate default config file", false)
 					return err
 				}
 				err = viper.WriteConfigAs(configPath + string(os.PathSeparator) + ".punch.toml")
 				if err != nil {
-					fmt.Println("Couldn't generate default config file")
+					reportError("Couldn't generate default config file", false)
 					return err
 				}
 			}
 		} else {
-			fmt.Println("You have an issue in your current config")
+			reportError("You have an issue in your current config", false)
 			return errors.New("configuration error")
 		}
 

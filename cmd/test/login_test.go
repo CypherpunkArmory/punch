@@ -16,7 +16,7 @@ func TestAskForLogin(t *testing.T) {
 	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 
-	require.Contains(t, p.Stdout(), "You need to login using `punch login` first.")
+	require.Contains(t, p.Stderr(), "You need to login using `punch login` first.")
 }
 
 func TestLogin(t *testing.T) {
