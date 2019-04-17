@@ -39,7 +39,7 @@ var itCmd = &cobra.Command{
 				telnet.DialToAndCall("towel.blinkenlights.nl:23", caller)
 				os.Exit(1)
 			}
-			fmt.Println("Input does not match the correct syntax type:port")
+			fmt.Fprintf(os.Stderr, "Input does not match the correct syntax type:port\n")
 			os.Exit(1)
 		}
 		tunnelMultiple(confs)
@@ -70,10 +70,9 @@ func tunnelMultiple(confs []tunnelConf) {
 	var tunnelConfigs = make([]tunnel.Config, len(confs))
 	protocol := make([]string, len(confs))
 	if subdomain != "" && !checkSubdomain(subdomain) {
-		fmt.Println("Invalid Subdomain")
+		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
 		os.Exit(1)
 	}
-
 	publicKey, err := getPublicKey(publicKeyPath)
 	if err != nil {
 		os.Exit(3)

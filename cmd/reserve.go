@@ -26,7 +26,7 @@ func init() {
 
 func reserve() {
 	if !checkSubdomain(subdomain) {
-		fmt.Println("Invalid Subdomain")
+		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
 		os.Exit(1)
 	}
 

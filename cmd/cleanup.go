@@ -24,7 +24,7 @@ func init() {
 
 func cleanup(openSubdomain string) {
 	if !checkSubdomain(openSubdomain) {
-		fmt.Println("Invalid Subdomain")
+		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
 		os.Exit(1)
 	}
 	err := restAPI.DeleteTunnelAPI(openSubdomain)

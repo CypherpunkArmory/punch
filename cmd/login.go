@@ -34,7 +34,7 @@ func login() {
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {
-		fmt.Println("Login Failed: " + err.Error())
+		fmt.Fprintf(os.Stderr, "Login Failed: %s\n", err.Error())
 		os.Exit(1)
 	}
 
@@ -42,7 +42,7 @@ func login() {
 	err = viper.WriteConfig()
 
 	if err != nil {
-		fmt.Println("Couldn't write refresh token to config - permissions maybe?")
+		fmt.Fprintf(os.Stderr, "Couldn't write refresh token to config - permissions maybe?\n")
 		os.Exit(1)
 	}
 

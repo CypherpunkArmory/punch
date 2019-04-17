@@ -33,7 +33,7 @@ var generateKeyCmd = &cobra.Command{
 		}
 		err := generateKey(path, fileName)
 		if err != nil {
-			fmt.Println("Failed to update config file")
+			fmt.Fprintf(os.Stderr, "Failed to update config file\n")
 			os.Exit(1)
 		}
 		fmt.Println("SSH keys have been generated and the config file has been updated")

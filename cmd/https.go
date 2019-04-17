@@ -34,11 +34,11 @@ func init() {
 }
 func tunnelHTTPS() {
 	if subdomain != "" && !checkSubdomain(subdomain) {
-		fmt.Println("Invalid Subdomain")
+		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
 		os.Exit(1)
 	}
 	if !checkPort(port) {
-		fmt.Println("Port is not in range[1-65535]")
+		fmt.Fprintf(os.Stderr, "Port is not in range[1-65535]\n")
 		os.Exit(1)
 	}
 

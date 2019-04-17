@@ -25,7 +25,7 @@ func init() {
 
 func release(subdomain string) {
 	if !checkSubdomain(subdomain) {
-		fmt.Println("Invalid Subdomain")
+		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
 		os.Exit(1)
 	}
 	err := restAPI.ReleaseSubdomainAPI(subdomain)

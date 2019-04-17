@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -36,8 +37,8 @@ func getPublicKey(path string) (string, error) {
 
 func printError(err error) {
 	if err.Error() == "" {
-		fmt.Println("Unexpected error occured")
+		fmt.Fprintf(os.Stderr, "Unexpected error occured\n")
 		return
 	}
-	fmt.Println(err)
+	fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 }

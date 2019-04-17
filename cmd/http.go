@@ -20,7 +20,7 @@ var httpCmd = &cobra.Command{
 		var err error
 		port, err = strconv.Atoi(args[0])
 		if err != nil {
-			fmt.Println("Must supply a port to forward")
+			fmt.Fprintf(os.Stderr, "Must supply a port to forward\n")
 			os.Exit(1)
 		}
 		tunnelHTTP()
@@ -34,11 +34,11 @@ func init() {
 
 func tunnelHTTP() {
 	if subdomain != "" && !checkSubdomain(subdomain) {
-		fmt.Println("Invalid Subdomain")
+		fmt.Fprintf(os.Stderr, "Invalid Subdomain\n")
 		os.Exit(1)
 	}
 	if !checkPort(port) {
-		fmt.Println("Port is not in range[1-65535]")
+		fmt.Fprintf(os.Stderr, "Port is not in range[1-65535]\n")
 		os.Exit(1)
 	}
 

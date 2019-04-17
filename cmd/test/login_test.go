@@ -27,7 +27,7 @@ func TestLogin(t *testing.T) {
 		t.Fatalf("Expected punch login to fail, but it succeed.")
 	}
 
-	if !p.StdoutContains("required flag(s) \"password\", \"username\" not set") {
+	if !p.StderrContains("required flag(s) \"password\", \"username\" not set") {
 		t.Fatalf("Expected password and username to be required.")
 	}
 }

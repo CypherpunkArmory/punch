@@ -39,6 +39,6 @@ func TestUnownedSubdomainRelease(t *testing.T) {
 	out := testcli.Command(exePath, "subdomain", "release", "testdomain", "--config", configPath)
 	out.Run()
 
-	require.Equal(t, out.Stdout(), "you do not own this subdomain\n")
+	require.Equal(t, out.Stderr(), "you do not own this subdomain\n")
 
 }

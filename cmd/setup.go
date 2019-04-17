@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"syscall"
@@ -22,7 +21,7 @@ var setupCmd = &cobra.Command{
 		fmt.Scanln(&setupKey)
 		setupKey = strings.ToLower(setupKey)
 		if setupKey != "" && !strings.HasPrefix(setupKey, "y") && !strings.HasPrefix(setupKey, "n") {
-			log.Println("Invalid input")
+			fmt.Fprintf(os.Stderr, "Invalid input\n")
 			os.Exit(1)
 		}
 		if strings.HasPrefix(setupKey, "n") {
@@ -32,7 +31,7 @@ var setupCmd = &cobra.Command{
 		}
 		err := generateKey("", "holepunch_key")
 		if err != nil {
-			fmt.Println("Could not generate key")
+			fmt.Fprintf(os.Stderr, "Could not generate key\n")
 			os.Exit(1)
 		}
 		fmt.Println("Generated keys in the current directory")
@@ -52,13 +51,13 @@ func setupLogin() {
 	fmt.Print("Enter Username: ")
 	_, err := fmt.Scanln(&username)
 	if err != nil {
-		fmt.Println("Error reading username")
+		fmt.Fprintf(os.Stderr, "Error reading username\n")
 		os.Exit(1)
 	}
 	fmt.Print("Enter Password: ")
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
-		fmt.Println("Error reading password")
+		fmt.Fprintf(os.Stderr, "Error reading password\n")
 		os.Exit(1)
 	}
 	fmt.Println()
@@ -66,7 +65,7 @@ func setupLogin() {
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {
-		fmt.Println("Login Failed: " + err.Error())
+		fmt.Fprintf(os.Stderr, "Login Failed: %s\n", err.Error())
 		os.Exit(1)
 	}
 
@@ -74,7 +73,7 @@ func setupLogin() {
 	err = viper.WriteConfig()
 
 	if err != nil {
-		fmt.Println("Couldn't write refresh token to config - permissions maybe?")
+		fmt.Fprintf(os.Stderr, "Couldn't write refresh token to config - permissions maybe?\n")
 		os.Exit(1)
 	}
 
