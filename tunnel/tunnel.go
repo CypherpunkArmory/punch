@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/cypherpunkarmory/punch/backoff"
+	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -110,7 +111,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		os.Exit(0)
 	}()
 
-	fmt.Printf("\nNow forwarding localhost:%d to %s://%s.%s\n",
+	fmt.Printf("\rNow forwarding localhost:%d to %s://%s.%s\n",
 		tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
@@ -181,16 +182,23 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 		fmt.Printf("dial INTO jump server error: %s", err)
 		return listener, err
 	}
-	fmt.Print("Starting tunnel.")
+	tunnelStarted := false
+	go func() {
+		s := spin.New()
+		for !tunnelStarted {
+			fmt.Printf("\rStarting tunnel %s ", s.Next())
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
 	exponentialBackoff := backoff.NewExponentialBackOff()
 	// Connect to SSH remote server using serverEndpoint
 	var serverConn net.Conn
 	for {
 		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 		if err == nil {
+			tunnelStarted = true
 			break
 		}
-		fmt.Print(".") // TODO: Use exponential backoff
 		time.Sleep(exponentialBackoff.NextBackOff())
 	}
 
