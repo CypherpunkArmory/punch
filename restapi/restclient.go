@@ -4,6 +4,9 @@ import (
 	"net/http"
 )
 
+//need to manually update this
+var apiVersion = "2019.4.19.1"
+
 //RestClient A stuct to hold persistent data that is used between rest calls
 type RestClient struct {
 	URL          string
@@ -11,10 +14,11 @@ type RestClient struct {
 	Client       http.Client
 }
 
+//NewRestClient Use this method to create a new rest client so headers can be setup
 func NewRestClient(apiEndpoint string, refreshToken string) RestClient {
 	client := http.DefaultClient
 	rt := WithHeader(client.Transport)
-	rt.Set("Api-Version", "2019.4.19.1")
+	rt.Set("Api-Version", apiVersion)
 	client.Transport = rt
 	restAPI := RestClient{
 		URL:          apiEndpoint,
@@ -24,13 +28,15 @@ func NewRestClient(apiEndpoint string, refreshToken string) RestClient {
 	return restAPI
 }
 
+//SetAPIKey set api key header
 func (restClient *RestClient) SetAPIKey(apiKey string) {
 	rt := WithHeader(restClient.Client.Transport)
 	rt.Set("Authorization", "Bearer "+apiKey)
 	restClient.Client.Transport = rt
 }
 
-func (h withHeader) RoundTrip(req *http.Request) (*http.Response, error) {
+//RoundTrip middleware that sets the headers of each request
+func (h ClientHandler) RoundTrip(req *http.Request) (*http.Response, error) {
 	for k, v := range h.Header {
 		req.Header[k] = v
 	}
@@ -38,15 +44,17 @@ func (h withHeader) RoundTrip(req *http.Request) (*http.Response, error) {
 	return h.rt.RoundTrip(req)
 }
 
-type withHeader struct {
+//ClientHandler struct to store header and roundtrip info
+type ClientHandler struct {
 	http.Header
 	rt http.RoundTripper
 }
 
-func WithHeader(rt http.RoundTripper) withHeader {
+//WithHeader Adds ability to edit headers without remaking everything
+func WithHeader(rt http.RoundTripper) ClientHandler {
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
 
-	return withHeader{Header: make(http.Header), rt: rt}
+	return ClientHandler{Header: make(http.Header), rt: rt}
 }

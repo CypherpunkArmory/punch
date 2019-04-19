@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/cypherpunkarmory/punch/restapi"
 	rollbar "github.com/rollbar/rollbar-go"
@@ -122,6 +123,10 @@ func tryStartSession() error {
 	err := restAPI.StartSession(refreshToken)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "incompatiable with the api") {
+			reportError("You need to update the cli to use with the current api", false)
+			confirmAndSelfUpdate()
+		}
 		reportError("Error starting session", false)
 		reportError("You need to login using `punch login` first.", false)
 		return errors.New("error starting session")
