@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/cypherpunkarmory/punch/backoff"
-	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -111,8 +110,8 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		os.Exit(0)
 	}()
 
-	fmt.Printf("\rNow forwarding localhost:%d to %s://%s.%s\n",
-		tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
+	fmt.Printf("%s://%s.%s\n",
+		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
@@ -184,9 +183,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 	}
 	tunnelStarted := false
 	go func() {
-		s := spin.New()
 		for !tunnelStarted {
-			fmt.Printf("\rStarting tunnel %s ", s.Next())
 			time.Sleep(100 * time.Millisecond)
 		}
 	}()
