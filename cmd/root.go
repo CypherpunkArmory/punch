@@ -126,6 +126,7 @@ func tryStartSession() error {
 		if strings.Contains(err.Error(), "incompatiable with the api") {
 			reportError("You need to update the cli to use with the current api", false)
 			confirmAndSelfUpdate()
+			return errors.New("error starting session")
 		}
 		reportError("Error starting session", false)
 		reportError("You need to login using `punch login` first.", false)

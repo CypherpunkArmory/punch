@@ -35,12 +35,12 @@ func confirmAndSelfUpdate() {
 		log.Println("Error occurred while detecting version:", err)
 		return
 	}
-	v := semver.MustParse(version)
+	// If version is not set just assume it should be updated
+	v, _ := semver.Parse(version)
 	if !found || latest.Version.LTE(v) {
 		log.Println("Current version is the latest")
 		return
 	}
-
 	var input string
 	fmt.Print("Do you want to update to: ", latest.Version, "? (Y/n): ")
 	fmt.Scanln(&input)

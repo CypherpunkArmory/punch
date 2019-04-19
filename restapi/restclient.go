@@ -4,7 +4,6 @@ import (
 	"net/http"
 )
 
-//need to manually update this
 var apiVersion = "2019.4.19.1"
 
 //RestClient A stuct to hold persistent data that is used between rest calls
