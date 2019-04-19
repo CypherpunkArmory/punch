@@ -172,9 +172,6 @@ func tryReadConfig() (err error) {
 		fmt.Println("Generated default config.")
 		_ = tryReadConfig()
 	}
-	restAPI = restapi.RestClient{
-		URL:          apiEndpoint,
-		RefreshToken: refreshToken,
-	}
+	restAPI = restapi.NewRestClient(apiEndpoint, refreshToken)
 	return nil
 }

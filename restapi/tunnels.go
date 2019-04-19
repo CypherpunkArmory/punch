@@ -60,7 +60,6 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 		return tunnelReturn, errorCantConnectRestCall
 	}
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return tunnelReturn, errorCantConnectRestCall
@@ -95,7 +94,6 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 	if err != nil {
 		return errorCantConnectRestCall
 	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := client.Do(req)
 	if err != nil {
 		return errorCantConnectRestCall
@@ -124,7 +122,6 @@ func (restClient *RestClient) getTunnelID(subdomainName string) (string, error) 
 	if err != nil {
 		return "", errorCantConnectRestCall
 	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return "", errorCantConnectRestCall
