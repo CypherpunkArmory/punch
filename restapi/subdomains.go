@@ -28,7 +28,6 @@ func (restClient *RestClient) ListSubdomainAPI() ([]Subdomain, error) {
 	if err != nil {
 		return nil, errorCantConnectRestCall
 	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return nil, errorCantConnectRestCall
@@ -74,7 +73,6 @@ func (restClient *RestClient) ReserveSubdomainAPI(subdomainName string) (Subdoma
 		return subdomainReturn, errorCantConnectRestCall
 	}
 	req.Header.Add("Content-Type", "application/vnd.api+json")
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 
 	if err != nil {
@@ -110,7 +108,6 @@ func (restClient *RestClient) ReleaseSubdomainAPI(subdomainName string) error {
 	if err != nil {
 		return errorCantConnectRestCall
 	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return errorCantConnectRestCall
@@ -140,7 +137,6 @@ func (restClient *RestClient) GetSubdomainName(subdomainID string) (string, erro
 	if err != nil {
 		return "", errorCantConnectRestCall
 	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return "", errorCantConnectRestCall
@@ -173,7 +169,6 @@ func (restClient *RestClient) getSubdomainID(subdomainName string) (string, erro
 	if err != nil {
 		return "", errorCantConnectRestCall
 	}
-	req.Header.Add("Authorization", "Bearer "+restClient.APIKEY)
 	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return "", errorCantConnectRestCall

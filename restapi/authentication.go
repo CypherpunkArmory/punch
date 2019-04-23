@@ -51,7 +51,7 @@ func (restClient *RestClient) StartSession(refreshToken string) error {
 	if err != nil {
 		return errorUnableToParse
 	}
-	restClient.APIKEY = responseBody.AccessToken
+	restClient.SetAPIKey(responseBody.AccessToken)
 	return nil
 }
 
@@ -93,6 +93,6 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 		return responseBody, errorUnableToParse
 	}
 	restClient.RefreshToken = responseBody.RefreshToken
-	restClient.APIKEY = responseBody.AccessToken
+	restClient.SetAPIKey(responseBody.AccessToken)
 	return responseBody, nil
 }

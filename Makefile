@@ -9,9 +9,11 @@ BINARY=punch
 VERSION=
 ROLLBAR_TOKEN=
 ARCHITECTURES=386 amd64
-
+# If more than one release is made in a day this should be incremented
+# I did not find a good way to do this in CircleCI
+CALVER=`date +%Y.%m.%d`.1
 # Setup linker flags option for build that interoperate with variable names in src code
-LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/cmd.version=$(VERSION) -X github.com/cypherpunkarmory/punch/cmd.rollbarToken=$(ROLLBAR_TOKEN) -s -w"
+LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/restapi.apiVersion=$(CALVER) -X github.com/cypherpunkarmory/punch/cmd.version=$(VERSION) -X github.com/cypherpunkarmory/punch/cmd.rollbarToken=$(ROLLBAR_TOKEN) -s -w"
 
 default: build
 
