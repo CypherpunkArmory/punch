@@ -41,7 +41,7 @@ build:
 zip:
 	mkdir -p output/release; \
 	cd output; \
-	echo "const PunchVersion = '$(VERSION)';" > release/version.js; \
+	echo "export const PunchVersion = '$(VERSION)';" > release/version.js; \
 	for f in punch*;  do \
 		case "$$f" in \
 			*.exe) extension=".exe" ;; \
