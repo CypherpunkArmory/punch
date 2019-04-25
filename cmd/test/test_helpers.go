@@ -46,12 +46,13 @@ func createConfig(t *testing.T) func() {
 	return func() {
 		err := os.Remove(configPath)
 		if err != nil {
-			viper.SetDefault("apikey", "")
+			viper.SetDefault("crashreporting", false)
 			viper.SetDefault("baseurl", "holepunch.io")
-			viper.SetDefault("apiendpoint", "http://0.0.0.0:5000")
+			viper.SetDefault("sshendpoint", "")
+			viper.SetDefault("apiendpoint", "http://localhost:5000")
 			viper.SetDefault("publickeypath", getKeyPath())
 			viper.SetDefault("privatekeypath", getKeyPath())
-			err = viper.WriteConfigAs(configPath)
+			err := viper.WriteConfigAs(configPath)
 			if err != nil {
 				t.Fatalf("Cant write config file")
 			}
@@ -60,9 +61,10 @@ func createConfig(t *testing.T) func() {
 }
 func initTestConfig(t *testing.T) {
 	t.Helper()
-	viper.SetDefault("apikey", "")
+	viper.SetDefault("crashreporting", false)
 	viper.SetDefault("baseurl", "holepunch.io")
-	viper.SetDefault("apiendpoint", "http://0.0.0.0:5000")
+	viper.SetDefault("sshendpoint", "")
+	viper.SetDefault("apiendpoint", "http://localhost:5000")
 	viper.SetDefault("publickeypath", getKeyPath())
 	viper.SetDefault("privatekeypath", getKeyPath())
 	err := viper.WriteConfigAs(configPath)
