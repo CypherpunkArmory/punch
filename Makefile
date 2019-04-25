@@ -17,6 +17,8 @@ LDFLAGS=-ldflags "-X github.com/cypherpunkarmory/punch/restapi.apiVersion=$(CALV
 
 default: build
 
+release: all zip
+
 all: clean windows linux macos
 
 define build-os
@@ -35,6 +37,21 @@ macos:
 
 build:
 	go build ${LDFLAGS}
+
+zip:
+	mkdir -p output/release; \
+	cd output; \
+	echo "export const PunchVersion = '$(VERSION)';" > release/version.js; \
+	for f in punch*;  do \
+		case "$$f" in \
+			*.exe) extension=".exe" ;; \
+			*) extension="" ;; \
+		esac; \
+		filename="$${f%.*}"; \
+		cp $${f} punch$${extension}; \
+		zip release/$${filename}.zip punch$${extension};  \
+		rm punch$${extension}; \
+	done;
 
 # Remove only what we've created
 clean:
