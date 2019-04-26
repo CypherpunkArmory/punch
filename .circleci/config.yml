@@ -80,9 +80,9 @@ jobs: # basic units of work in a run
             git -C Holepunch-Site checkout develop
             git -C Holepunch-Site add -A
             git -C Holepunch-Site commit --allow-empty -m "Upgrade punch release tag to: ${VERSION}" 
-            git -C Holepunch-Site push origin develop
+            git -C Holepunch-Site push -q https://${GITHUB_TOKEN}@github.com/CypherpunkArmory/Holepunch-Site.git develop
             git -C Holepunch-Site tag punch_version_${VERSION}
-            git -C Holepunch-Site push origin punch_version_${VERSION}
+            git -C Holepunch-Site push -q https://${GITHUB_TOKEN}@github.com/CypherpunkArmory/Holepunch-Site.git punch_version_${VERSION}
 
 workflows:
   version: 2
