@@ -89,12 +89,11 @@ func (restClient *RestClient) DeleteTunnelAPI(subdomainName string) error {
 	}
 
 	url := restClient.URL + "/tunnels/" + id
-	client := &http.Client{}
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return errorCantConnectRestCall
 	}
-	resp, err := client.Do(req)
+	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return errorCantConnectRestCall
 	}
