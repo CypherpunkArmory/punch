@@ -25,6 +25,7 @@ type Tunnel struct {
 func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string, protocol []string) (Tunnel, error) {
 	tunnelReturn := Tunnel{}
 	var outputBuffer bytes.Buffer
+
 	if subdomain != "" {
 		subdomainID, err := restClient.getSubdomainID(subdomain)
 		if err != nil {
@@ -54,6 +55,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 			return tunnelReturn, errorUnableToParse
 		}
 	}
+
 	url := restClient.URL + "/tunnels"
 	req, err := http.NewRequest("POST", url, &outputBuffer)
 	if err != nil {
@@ -65,6 +67,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 		return tunnelReturn, errorCantConnectRestCall
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode > 399 {
 		buf, _ := ioutil.ReadAll(resp.Body)
 		errObject := ResponseError{}
@@ -74,6 +77,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 		}
 		return tunnelReturn, &errObject
 	}
+
 	err = jsonapi.UnmarshalPayload(resp.Body, &tunnelReturn)
 	if err != nil {
 		return tunnelReturn, errorUnableToParse

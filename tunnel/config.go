@@ -2,27 +2,29 @@ package tunnel
 
 import (
 	"fmt"
+	"net/url"
 
 	"github.com/cypherpunkarmory/punch/restapi"
 )
 
 //Config Object to make passing config eaiser
 type Config struct {
-	ConnectionEndpoint string
+	ConnectionEndpoint url.URL
 	RestAPI            restapi.RestClient
 	TunnelEndpoint     restapi.Tunnel
 	PrivateKeyPath     string
-	LocalPort          int
+	LocalPort          string
 	Subdomain          string
 	EndpointType       string
-	EndpointURL        string
+	EndpointURL        url.URL
+	LogLevel           string
 }
 
-type endpoint struct {
+type Endpoint struct {
 	Host string
-	Port int
+	Port string
 }
 
-func (endpoint *endpoint) String() string {
-	return fmt.Sprintf("%s:%d", endpoint.Host, endpoint.Port)
+func (e *Endpoint) String() string {
+	return fmt.Sprintf("%s:%s", e.Host, e.Port)
 }

@@ -1,9 +1,8 @@
 package cmd
 
 import (
+	"net/url"
 	"os"
-
-	"strconv"
 
 	"github.com/cypherpunkarmory/punch/tunnel"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ var httpsCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		port, err = strconv.Atoi(args[0])
+		port = args[0]
 		if err != nil {
 			reportError("Must supply a port to forward", true)
 		}
@@ -51,15 +50,28 @@ func tunnelHTTPS() {
 	if subdomain == "" {
 		subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
 	}
+
+	connectionURL, err := url.Parse(sshEndpoint)
+	if err != nil {
+		reportError("The ssh endpoint is not a valid URL", true)
+		os.Exit(3)
+	}
+
+	baseURL, err := url.Parse(baseURL)
+	if err != nil {
+		reportError("The base url is not a valid URL", true)
+	}
+
 	tunnelConfig := tunnel.Config{
-		ConnectionEndpoint: sshEndpoint,
+		ConnectionEndpoint: *connectionURL,
 		RestAPI:            restAPI,
 		TunnelEndpoint:     response,
 		EndpointType:       "https",
 		PrivateKeyPath:     privateKeyPath,
-		EndpointURL:        baseURL,
+		EndpointURL:        *baseURL,
 		LocalPort:          port,
 		Subdomain:          subdomain,
+		LogLevel:           logLevel,
 	}
 	tunnel.StartReverseTunnel(&tunnelConfig, nil)
 }

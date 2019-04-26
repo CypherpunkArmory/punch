@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -14,8 +15,12 @@ func checkSubdomain(subdomain string) bool {
 	return r.MatchString(subdomain)
 }
 
-func checkPort(port int) bool {
-	return 0 < port && port < 65536
+func checkPort(port string) bool {
+	portNo, err := strconv.Atoi(port)
+	if err != nil {
+		reportError(fmt.Sprintf("Invalid port number %s, must be an integer between 0 and 65536", port), true)
+	}
+	return 0 < portNo && portNo < 65536
 }
 
 func fixFilePath(path string) string {

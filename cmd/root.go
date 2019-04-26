@@ -21,7 +21,7 @@ var baseURL string
 var configFile string
 var configPath string
 var crashReporting bool
-var port int
+var port string
 var privateKeyPath string
 var publicKeyPath string
 var refreshToken string
@@ -29,6 +29,7 @@ var restAPI restapi.RestClient
 var rollbarToken string
 var sshEndpoint string
 var subdomain string
+var logLevel string
 
 //This gets written in the makefile
 var version string
@@ -71,7 +72,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&publicKeyPath, "publickeypath", "", "Path to your public keys - (~/.ssh)")
 	rootCmd.PersistentFlags().StringVar(&privateKeyPath, "privatekeypath", "", "Path to your private keys - (~/.ssh)")
 	rootCmd.PersistentFlags().StringVar(&sshEndpoint, "sshendpoint", "", "endpoint that ssh tunnel connects to, to get to internal network")
+	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "", "Set the loglevel")
 	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers")
+	err := rootCmd.PersistentFlags().MarkHidden("loglevel")
+	if err != nil {
+		panic(err)
+	}
 
 	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
 	viper.BindPFlag("baseurl", rootCmd.PersistentFlags().Lookup("baseurl"))
@@ -80,12 +86,14 @@ func init() {
 	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
 	viper.BindPFlag("crashreporting", rootCmd.PersistentFlags().Lookup("crashreporting"))
 	viper.BindPFlag("sshendpoint", rootCmd.PersistentFlags().Lookup("sshendpoint"))
+	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 	viper.SetDefault("crashreporting", true)
 	viper.SetDefault("baseurl", "holepunch.io")
 	viper.SetDefault("sshendpoint", "api.holepunch.io")
 	viper.SetDefault("apiendpoint", "https://api.holepunch.io")
 	viper.SetDefault("publickeypath", "")
 	viper.SetDefault("privatekeypath", "")
+	viper.SetDefault("loglevel", "")
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Use:    "no-help",
 		Hidden: true,
@@ -124,7 +132,7 @@ func tryStartSession() error {
 
 	if err != nil {
 		if strings.Contains(err.Error(), "incompatiable with the api") {
-			reportError("You need to update the cli to use with the current api", false)
+			reportError("Your punch client is out of date. Please use `punch update` to get the latest version.", false)
 			confirmAndSelfUpdate()
 			return errors.New("error starting session")
 		}
@@ -153,6 +161,7 @@ func tryReadConfig() (err error) {
 		apiEndpoint = viper.GetString("apiendpoint")
 		sshEndpoint = viper.GetString("sshendpoint")
 		crashReporting = viper.GetBool("crashreporting")
+		logLevel = viper.GetString("loglevel")
 
 		publicKeyPath = fixFilePath(publicKeyPath)
 		privateKeyPath = fixFilePath(privateKeyPath)

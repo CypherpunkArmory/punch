@@ -31,12 +31,12 @@ func TestCheckSubdomain(t *testing.T) {
 func TestCheckPort(t *testing.T) {
 	cases := []struct {
 		Name     string
-		Input    int
+		Input    string
 		Expected bool
 	}{
-		{"TooLow", 0, false},
-		{"Valid", 12374, true},
-		{"TooHigh", 65536, false},
+		{"TooLow", "0", false},
+		{"Valid", "12374", true},
+		{"TooHigh", "65536", false},
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
