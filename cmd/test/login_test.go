@@ -3,7 +3,6 @@
 package cmdtest
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -23,7 +22,7 @@ func TestLogin(t *testing.T) {
 	defer createConfig(t)()
 	p := testcli.Command(exePath, "login", "--config", configPath)
 	p.Run()
-	if !p.Failure() {
+	if p.Success() {
 		t.Fatalf("Expected punch login to fail, but it succeed.")
 	}
 
@@ -37,11 +36,9 @@ func TestLoginSetsTOML(t *testing.T) {
 	p := testcli.Command(exePath, "login", "-u", "testuser@holepunch.io", "-p", "secret", "--config", configPath)
 	p.Run()
 
-	if !p.Success() {
+	if p.Failure() {
 		t.Fatalf("Expected punch login to succeed, but it failed.")
 	}
-
-	fmt.Println(p.Stdout())
 
 	dat, err := ioutil.ReadFile(configPath)
 	if err != nil {
@@ -57,7 +54,6 @@ func TestIncorrectLogin(t *testing.T) {
 	p.Run()
 
 	if !p.Success() {
-
 	} else {
 		t.FailNow()
 	}

@@ -44,18 +44,15 @@ func createConfig(t *testing.T) func() {
 		initTestConfig(t)
 	}
 	return func() {
-		err := os.Remove(configPath)
+		viper.SetDefault("crashreporting", false)
+		viper.SetDefault("baseurl", "holepunch.io")
+		viper.SetDefault("sshendpoint", "")
+		viper.SetDefault("apiendpoint", "http://localhost:5000")
+		viper.SetDefault("publickeypath", getKeyPath())
+		viper.SetDefault("privatekeypath", getKeyPath())
+		err := viper.WriteConfigAs(configPath)
 		if err != nil {
-			viper.SetDefault("crashreporting", false)
-			viper.SetDefault("baseurl", "holepunch.io")
-			viper.SetDefault("sshendpoint", "")
-			viper.SetDefault("apiendpoint", "http://localhost:5000")
-			viper.SetDefault("publickeypath", getKeyPath())
-			viper.SetDefault("privatekeypath", getKeyPath())
-			err := viper.WriteConfigAs(configPath)
-			if err != nil {
-				t.Fatalf("Cant write config file")
-			}
+			t.Fatalf("Cant write config file")
 		}
 	}
 }
@@ -81,10 +78,10 @@ func configLogin(t *testing.T) {
 
 func reserveSubdomain(t *testing.T, subdomain string) func() {
 	t.Helper()
-	p := testcli.Command(exePath, "subdomain", "reserve", subdomain, "--config", configPath)
+	p := testcli.Command(exePath, "subdomain", "reserve", "-s", subdomain, "--config", configPath)
 	p.Run()
 	return func() {
-		p := testcli.Command(exePath, "subdomain", "release", subdomain, "--config", configPath)
+		p := testcli.Command(exePath, "subdomain", "release", "-s", subdomain, "--config", configPath)
 		p.Run()
 	}
 }

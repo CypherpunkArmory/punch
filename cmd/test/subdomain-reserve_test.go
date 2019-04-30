@@ -15,7 +15,7 @@ func TestBadSubdomainReserve(t *testing.T) {
 	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
-	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain*/*/*/$$", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "-s", "testdomain*/*/*/$$", "--config", configPath)
 	p.Run()
 
 	require.Equal(t, p.Stderr(), "Invalid Subdomain\n")
@@ -30,7 +30,7 @@ func TestSubdomainReserve(t *testing.T) {
 	p := testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
-	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "-s", "testdomain", "--config", configPath)
 	p.Run()
 
 	require.Equal(t, p.Stdout(), "Successfully reserved subdomain testdomain\n")
@@ -38,7 +38,7 @@ func TestSubdomainReserve(t *testing.T) {
 	p.Run()
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 	defer func() {
-		p := testcli.Command(exePath, "subdomain", "release", "testdomain", "--config", configPath)
+		p := testcli.Command(exePath, "subdomain", "release", "-s", "testdomain", "--config", configPath)
 		p.Run()
 	}()
 
@@ -50,18 +50,18 @@ func TestOwnedSubdomainReserve(t *testing.T) {
 	p.Run()
 	require.Equal(t, true, equalsEmptySubdomainList(p.Stdout()))
 
-	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "-s", "testdomain", "--config", configPath)
 	p.Run()
 	p = testcli.Command(exePath, "subdomain", "list", "--config", configPath)
 	p.Run()
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 
-	p = testcli.Command(exePath, "subdomain", "reserve", "testdomain", "--config", configPath)
+	p = testcli.Command(exePath, "subdomain", "reserve", "-s", "testdomain", "--config", configPath)
 	p.Run()
 	require.Equal(t, p.Stderr(), "Subdomain has already been reserved\n")
 
 	defer func() {
-		p := testcli.Command(exePath, "subdomain", "release", "testdomain", "--config", configPath)
+		p := testcli.Command(exePath, "subdomain", "release", "-s", "testdomain", "--config", configPath)
 		p.Run()
 	}()
 }

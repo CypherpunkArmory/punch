@@ -18,10 +18,7 @@ func TestSubdomainListNoSubdomains(t *testing.T) {
 }
 
 func equalsEmptySubdomainList(output string) bool {
-	return output == "+----------------+----------+--------+\n"+
-		"| SUBDOMAIN NAME | RESERVED | IN USE |\n"+
-		"+----------------+----------+--------+\n"+
-		"+----------------+----------+--------+\n"
+	return output == "You have no subdomains\n"
 }
 func TestSubdomainListWithSubdomains(t *testing.T) {
 	defer createConfig(t)()
@@ -32,9 +29,7 @@ func TestSubdomainListWithSubdomains(t *testing.T) {
 	require.Equal(t, true, equalsOneSubdomainList(p.Stdout(), "testdomain"))
 }
 func equalsOneSubdomainList(output string, subdomain string) bool {
-	return output == "+----------------+----------+--------+\n"+
-		"| SUBDOMAIN NAME | RESERVED | IN USE |\n"+
-		"+----------------+----------+--------+\n"+
-		"| "+subdomain+"     | true     | false  |\n"+
-		"+----------------+----------+--------+\n"
+	return output == "Subdomain Name\tReserved\tIn Use\n"+
+		"--------------\t--------\t------\n"+
+		subdomain+"\ttrue\tfalse"
 }
