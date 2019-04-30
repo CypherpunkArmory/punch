@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"text/tabwriter"
+
 	"github.com/cypherpunkarmory/punch/restapi"
 	"github.com/spf13/cobra"
-	"text/tabwriter"
 )
 
 var subdomainCmd = &cobra.Command{

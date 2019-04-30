@@ -16,7 +16,6 @@ import (
 )
 
 var apiEndpoint string
-var apiToken string
 var baseURL string
 var configFile string
 var configPath string
