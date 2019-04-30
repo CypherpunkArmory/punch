@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,4 +41,5 @@ func login() {
 	if err != nil {
 		reportError("Couldn't write refresh token to config - permissions maybe?", true)
 	}
+	fmt.Println("Login successful")
 }

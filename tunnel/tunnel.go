@@ -268,6 +268,6 @@ func cleanup(config *Config) {
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
-		fmt.Fprintf(os.Stderr, "Could not delete tunnel. Use punch cleanup %s", config.Subdomain)
+		fmt.Fprintf(os.Stderr, "Could not delete tunnel. Use punch cleanup %s\n", config.Subdomain)
 	}
 }

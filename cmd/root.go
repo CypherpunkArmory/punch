@@ -66,12 +66,6 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is ~/.punch)")
-	rootCmd.PersistentFlags().StringVar(&apiToken, "apikey", "", "Your holepunch API key")
-	rootCmd.PersistentFlags().StringVar(&baseURL, "baseurl", "", "Holepunch server to use - (default is holepunch.io)")
-	rootCmd.PersistentFlags().StringVar(&apiEndpoint, "apiendpoint", "", "Holepunch server to use - (default is https://api.holepunch.io)")
-	rootCmd.PersistentFlags().StringVar(&publicKeyPath, "publickeypath", "", "Path to your public keys - (~/.ssh)")
-	rootCmd.PersistentFlags().StringVar(&privateKeyPath, "privatekeypath", "", "Path to your private keys - (~/.ssh)")
-	rootCmd.PersistentFlags().StringVar(&sshEndpoint, "sshendpoint", "", "endpoint that ssh tunnel connects to, to get to internal network")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "", "Set the loglevel")
 	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers")
 	err := rootCmd.PersistentFlags().MarkHidden("loglevel")
@@ -79,13 +73,7 @@ func init() {
 		panic(err)
 	}
 
-	viper.BindPFlag("apikey", rootCmd.PersistentFlags().Lookup("apikey"))
-	viper.BindPFlag("baseurl", rootCmd.PersistentFlags().Lookup("baseurl"))
-	viper.BindPFlag("apiendpoint", rootCmd.PersistentFlags().Lookup("apiendpoint"))
-	viper.BindPFlag("publickeypath", rootCmd.PersistentFlags().Lookup("publickeypath"))
-	viper.BindPFlag("privatekeypath", rootCmd.PersistentFlags().Lookup("privatekeypath"))
 	viper.BindPFlag("crashreporting", rootCmd.PersistentFlags().Lookup("crashreporting"))
-	viper.BindPFlag("sshendpoint", rootCmd.PersistentFlags().Lookup("sshendpoint"))
 	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 	viper.SetDefault("crashreporting", true)
 	viper.SetDefault("baseurl", "http://holepunch.io")

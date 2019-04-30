@@ -3,11 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/cypherpunkarmory/punch/restapi"
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"text/tabwriter"
 )
 
 var subdomainCmd = &cobra.Command{
@@ -42,17 +41,18 @@ func subdomainList() {
 }
 
 func printSubdomains(response []restapi.Subdomain) {
-	var data = make([][]string, len(response))
-	for _, elem := range response {
-		reserved := strconv.FormatBool(elem.Reserved)
-		inuse := strconv.FormatBool(elem.InUse)
-		data = append(data, []string{elem.Name, reserved, inuse})
+	w := new(tabwriter.Writer)
+	// minwidth, tabwidth, padding, padchar, flags
+	w.Init(os.Stdout, 16, 8, 0, '\t', 0)
+
+	defer w.Flush()
+	if len(response) == 0 {
+		fmt.Println("You have no subdomains")
+		return
 	}
-
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Subdomain Name", "Reserved", "In Use"})
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-
-	table.AppendBulk(data)
-	table.Render()
+	fmt.Fprintf(w, "%s\t%s\t%s\t", "Subdomain Name", "Reserved", "In Use")
+	fmt.Fprintf(w, "\n%s\t%s\t%s\t\n", "--------------", "--------", "------")
+	for _, elem := range response {
+		fmt.Fprintf(w, "%s\t%t\t%t\t\n", elem.Name, elem.Reserved, elem.InUse)
+	}
 }
