@@ -12,7 +12,7 @@ import (
 
 var setupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "setup holepunch",
+	Short: "Setup holepunch",
 	Run: func(cmd *cobra.Command, args []string) {
 		var setupKey string
 		setupLogin()

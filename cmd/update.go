@@ -13,8 +13,8 @@ import (
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
-	Short: "update cli version",
-	Long:  `update cli to latest release on github`,
+	Short: "Update cli version",
+	Long:  `Update cli to latest release on github`,
 	Run: func(cmd *cobra.Command, args []string) {
 		confirmAndSelfUpdate()
 	},

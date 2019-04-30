@@ -12,8 +12,8 @@ import (
 
 var subdomainCmd = &cobra.Command{
 	Use:   "subdomain",
-	Short: "subdomain",
-	Long:  `subdomain`,
+	Short: "Manage subdomains",
+	Long:  `List, reserve, and release subdomains`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Try subdomain release, subdomain reserve or subdomain list")
 	},
