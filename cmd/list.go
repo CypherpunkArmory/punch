@@ -10,15 +10,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var subdomainCmd = &cobra.Command{
-	Use:   "subdomain",
-	Short: "Manage subdomains",
-	Long:  `List, reserve, and release subdomains`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Try subdomain release, subdomain reserve or subdomain list")
-	},
-}
-
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List your subdomains",
@@ -29,8 +20,7 @@ var listCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(subdomainCmd)
-	subdomainCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(listCmd)
 }
 
 func subdomainList() {

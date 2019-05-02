@@ -1,12 +1,7 @@
 package tunnel
 
 import (
-	"crypto/x509"
-	"encoding/pem"
-	"errors"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
@@ -18,78 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/crypto/ssh/terminal"
 )
-
-// From https://sosedoff.com/2015/05/25/ssh-port-forwarding-with-go.html
-// Handle local client connections and tunnel data to the remote server
-// Will use io.Copy - http://golang.org/pkg/io/#Copy
-func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
-	defer client.Close()
-	defer remote.Close()
-
-	chDone := make(chan bool)
-	// Start remote -> local data transfer
-	go func() {
-		amt, err := io.Copy(client, remote)
-		if err != nil {
-			log.Debugf("Copy Error: %s ", err)
-		}
-		log.Debugf("Local -> Remote (%d bytes)", amt)
-		chDone <- true
-	}()
-
-	// Start local -> remote data transfer
-	go func() {
-		amt, err := io.Copy(remote, client)
-		if err != nil {
-			log.Debugf("Copy Error %s ", err)
-		}
-		log.Debugf("Local <- Remote (%d bytes)", amt)
-		chDone <- true
-	}()
-	<-chDone
-}
-
-func privateKeyFile(path string) (ssh.AuthMethod, error) {
-	log.Debugf("Parsing privatekey %s", path)
-
-	buffer, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, errors.New("cannot read SSH key file " + path)
-	}
-	if len(buffer) == 0 {
-		return nil, errors.New("bad key file empty file")
-	}
-
-	block, _ := pem.Decode(buffer)
-	if block == nil {
-		return nil, errors.New("bad key file")
-	}
-
-	// Return early if the SSH file is not password protected
-	if !x509.IsEncryptedPEMBlock(block) {
-		key, errParse := ssh.ParsePrivateKey(buffer)
-		if errParse != nil {
-			return nil, errors.New("cannot parse SSH key file " + path)
-		}
-		return ssh.PublicKeys(key), nil
-	}
-
-	fmt.Println("Your password: ")
-
-	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		return nil, errors.New("could not read your password " + err.Error())
-	}
-
-	key, err := ssh.ParsePrivateKeyWithPassphrase(buffer, bytePassword)
-	if err != nil {
-		return nil, errors.New("cannot parse SSH key file " + path)
-	}
-
-	return ssh.PublicKeys(key), nil
-}
 
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
@@ -135,10 +59,10 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		log.Debugf("Dial to local %s", localEndpoint.String())
-		local, errLocal := net.Dial("tcp", localEndpoint.String())
+		remote, errRemote := net.Dial("tcp", localEndpoint.String())
 		client, errClient := listener.Accept()
-		if errLocal == nil && errClient == nil && client != nil && local != nil {
-			go handleClient(client, local)
+		if errRemote == nil && errClient == nil && client != nil && remote != nil {
+			go handleClient(client, remote)
 		}
 	}
 
