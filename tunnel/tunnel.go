@@ -28,7 +28,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	}
 	listener, err := createTunnel(tunnelConfig, semaphore)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s", err.Error())
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
 
@@ -182,7 +182,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	// Listen on remote server port
 	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "listen open port ON remote server error: %s", err)
+		fmt.Fprintf(os.Stderr, "listen open port ON remote server error: %s\n", err)
 		return listener, err
 	}
 	log.Debugf("Open listen port on %s", remoteEndpoint.String())
