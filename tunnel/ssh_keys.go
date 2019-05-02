@@ -23,7 +23,6 @@ func readPrivateKeyFile(path string) (ssh.AuthMethod, error) {
 	if len(buffer) == 0 {
 		return nil, errors.New("bad key file empty file")
 	}
-
 	block, _ := pem.Decode(buffer)
 	if block == nil {
 		return nil, errors.New("bad key file")
@@ -44,7 +43,6 @@ func readPrivateKeyFile(path string) (ssh.AuthMethod, error) {
 	if err != nil {
 		return nil, errors.New("could not read your password " + err.Error())
 	}
-
 	key, err := ssh.ParsePrivateKeyWithPassphrase(buffer, bytePassword)
 	if err != nil {
 		return nil, errors.New("cannot parse SSH key file " + path)
