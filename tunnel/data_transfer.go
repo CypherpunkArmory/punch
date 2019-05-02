@@ -27,14 +27,15 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 
 func copyData(dst io.WriteCloser, dstName string, src io.ReadCloser, srcName string, done *sync.WaitGroup, errorCh chan error) {
 	defer done.Done()
-
-	if _, err := io.Copy(dst, src); err != nil {
+	amt, err := io.Copy(dst, src)
+	if err != nil {
 		errorCh <- fmt.Errorf(
 			"%s -> %s error: %s",
 			srcName,
 			dstName,
 			err.Error())
 	}
+	log.Debugf("Local <- Remote (%d bytes)", amt)
 	src.Close()
 	dst.Close()
 }
