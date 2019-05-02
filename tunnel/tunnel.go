@@ -37,8 +37,8 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	}
 
 	// This catches CTRL C and closes the ssh
-	c := make(chan os.Signal)
-	signal.Notify(c,
+	s := make(chan os.Signal)
+	signal.Notify(s,
 		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
 		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
 		syscall.SIGINT,  // Ctrl+C
@@ -47,9 +47,11 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	)
 
 	go func() {
-		<-c
-		cleanup(tunnelConfig)
-		os.Exit(0)
+		<-s
+		if semaphore.CanRun() {
+			cleanup(tunnelConfig)
+			os.Exit(0)
+		}
 	}()
 
 	fmt.Printf("Access your website at %s://%s.%s\n",
@@ -92,7 +94,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		cleanup(tunnelConfig)
 		os.Exit(0)
 	}()
-
+	defer signal.Stop(c)
 	var listener net.Listener
 
 	sshPort := tunnelConfig.TunnelEndpoint.SSHPort
@@ -199,10 +201,11 @@ func tunnelStartingSpinner(lock *Semaphore, tunnelStarted *bool) {
 	}()
 }
 func cleanup(config *Config) {
+	fmt.Println("\nClosing tunnel")
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
 		fmt.Fprintf(os.Stderr, "Could not delete tunnel. Use punch cleanup %s\n", config.Subdomain)
 	}
-	fmt.Println()
+
 }
