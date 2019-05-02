@@ -3,6 +3,7 @@ package cmd
 import (
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/cypherpunkarmory/punch/tunnel"
 	"github.com/spf13/cobra"
@@ -13,10 +14,13 @@ var httpsCmd = &cobra.Command{
 	Use:   "https [port]",
 	Short: "Expose a https web server over the port you specify",
 	Long:  `To expose a https web server on port 443 punch https 443`,
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		port = args[0]
+		if len(args) == 2 {
+			subdomain = args[1]
+		}
+		port, err = strconv.Atoi(args[0])
 		if err != nil {
 			reportError("Must supply a port to forward", true)
 		}
