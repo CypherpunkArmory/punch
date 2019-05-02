@@ -16,7 +16,7 @@ var httpCmd = &cobra.Command{
 	Long:  "Expose a web server on the port you specify.\n" +
 	       "Example: `punch http 8080` will expose a web server running on port 8080.\n" +
 	       "You can provide an optional 2nd arguement to specify the name of a reserved subdomain you want to associate this with.\n" +
-	       "Example: `punch http 8080 mydomain` will expose a web server running on port 8080 observable via \"http://mydomain.holepunch.io\".\n" +
+	       "Example: `punch http 8080 mydomain` will expose a web server running on port 8080 via \"http://mydomain.holepunch.io\".\n" +
 	       "Otherwise it will default to using a new unreserved subdomain.",
 	Args:  cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {

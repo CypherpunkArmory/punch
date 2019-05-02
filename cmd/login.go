@@ -15,6 +15,7 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to holepunch.",
 	Long:  "Login back into holepunch.\n" +
+	       "Will prompt you for username and password, or you can provide them as optional arguements.\n" +
 	       "You should use `punch setup` instead of `punch login` the first time.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if username != "" && password != "" {
