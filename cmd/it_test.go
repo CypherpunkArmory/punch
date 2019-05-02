@@ -17,6 +17,7 @@ func Test_getTunnelConfig(t *testing.T) {
 		{"Invalid(gibberish)", "kajsbdf&*(&", tunnelConf{}, true},
 		{"Invalid(wrong order)", "80:http", tunnelConf{"", ""}, true},
 		{"Invalid(Extra values)", "http:80:https", tunnelConf{}, true},
+		{"Invalid(wrong forward type)", "chewie:80", tunnelConf{0, "chewie"}, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
