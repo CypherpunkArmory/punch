@@ -58,7 +58,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	}()
 
 	fmt.Printf("Access your website at %s://%s.%s\n",
-		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
+		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint

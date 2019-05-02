@@ -3,7 +3,6 @@ package cmd
 import (
 	"net/url"
 	"os"
-	"strconv"
 
 	"github.com/cypherpunkarmory/punch/tunnel"
 
@@ -21,7 +20,7 @@ var httpCmd = &cobra.Command{
 		if len(args) == 2 {
 			subdomain = args[1]
 		}
-		port, err = strconv.Atoi(args[0])
+		port = args[0]
 		if err != nil {
 			reportError("Must supply a port to forward", true)
 		}
