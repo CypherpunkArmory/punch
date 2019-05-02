@@ -16,6 +16,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+var done = "done"
+var starting = "starting"
+
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
 	defer cleanup(tunnelConfig)
@@ -87,10 +90,15 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		syscall.SIGQUIT, // Ctrl-\
 		syscall.SIGHUP,  // "terminal is disconnected"
 	)
-
+	tunnelStatus := starting
 	go func() {
 		<-c
 		log.Debugf("Closing tunnel")
+		tunnelStatus = "error"
+		for !semaphore.CanRun() {
+
+		}
+		defer semaphore.Done()
 		cleanup(tunnelConfig)
 		os.Exit(0)
 	}()
@@ -147,8 +155,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		return listener, err
 	}
 
-	tunnelStarted := false
-	tunnelStartingSpinner(semaphore, &tunnelStarted)
+	tunnelStartingSpinner(semaphore, &tunnelStatus)
 	exponentialBackoff := backoff.NewExponentialBackOff()
 
 	// Connect to SSH remote server using serverEndpoint
@@ -157,7 +164,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 		log.Debugf("Dial into SSHD Container %s", serverEndpoint.String())
 		if err == nil {
-			tunnelStarted = true
+			tunnelStatus = done
 			break
 		}
 		wait := exponentialBackoff.NextBackOff()
@@ -182,7 +189,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	return listener, nil
 }
 
-func tunnelStartingSpinner(lock *Semaphore, tunnelStarted *bool) {
+func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *string) {
 	go func() {
 		if lock != nil {
 			if !lock.CanRun() {
@@ -191,13 +198,15 @@ func tunnelStartingSpinner(lock *Semaphore, tunnelStarted *bool) {
 			defer lock.Done()
 		}
 		s := spin.New()
-		for !*tunnelStarted {
+		for *tunnelStatus == starting {
 			fmt.Printf("\rStarting tunnel %s ", s.Next())
 			time.Sleep(100 * time.Millisecond)
 		}
-		fmt.Printf("\rStarting tunnel ")
-		d := color.New(color.FgGreen, color.Bold)
-		d.Printf("✔\n")
+		if *tunnelStatus == done {
+			fmt.Printf("\rStarting tunnel ")
+			d := color.New(color.FgGreen, color.Bold)
+			d.Printf("✔\n")
+		}
 	}()
 }
 func cleanup(config *Config) {
