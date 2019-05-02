@@ -8,8 +8,9 @@ import (
 
 var cleanupCmd = &cobra.Command{
 	Use:   "cleanup [subdomain]",
-	Short: "Cleanup a tunnel that shouldn't be open",
-	Long:  `Cleanup a tunnel that shouldn't be open that is associated to the given subdomain`,
+	Short: "Cleanup a subdomain that is incorrectly marked as \"In Use\"",
+	Long:  "Cleanup a subdomain that is incorrectly marked as \"In Use\".\n" +
+	       "This closes the tunnel from our end and updates the subdomain database.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		subdomain = args[0]

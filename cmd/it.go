@@ -24,10 +24,13 @@ func (tc *tunnelConf) String() string {
 }
 
 var itCmd = &cobra.Command{
-	Use:   "it [ports]",
+	Use:   "it [ports] [subdomain]",
 	Short: "Expose a web server on the ports you specify",
-	Long: `To expose a http web server on port 5000 and https web server on port 5001
-			 punch it http:5000 https:5001`,
+	Long:  "Expose a web server on the ports you specify.\n" +
+	       "Example: `punch it http:8080 https:443` will expose a web server running on port 8080 and an https web server running on port 443.\n" +
+	       "You can provide an optional arguement to specify the name of a reserved subdomain you want to associate this with.\n" +
+	       "Example: `punch it http:8080 https:443 mydomain` will expose a web server running on port 8080 observable via \"http://mydomain.holepunch.io\" and an https web server running on port 443 via \"https://mydomain.holepunch.io\".\n" +
+	       "Otherwise it will default to using a new unreserved subdomain.",
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 1 && correctSubdomainRegex(args[len(args)-1]) {

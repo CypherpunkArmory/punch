@@ -37,7 +37,7 @@ var rootCmd = &cobra.Command{
 	Version: version,
 	Use:     "punch",
 	Short:   "Like a holepunch for your network",
-	Long:    `HolePunch`,
+	Long:    `punch - CLI for holepunch.io`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
 		err := tryStartSession()
