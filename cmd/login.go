@@ -14,7 +14,11 @@ var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Login to holepunch",
 	Run: func(cmd *cobra.Command, args []string) {
-		login()
+		if username != "" && password != "" {
+			login()
+			return
+		}
+		setupLogin() // This function is located in cmd/setup.go
 	},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
@@ -25,8 +29,6 @@ func init() {
 	rootCmd.AddCommand(loginCmd)
 	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Your holepunch.io username")
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Your holepunch.io password")
-	loginCmd.MarkFlagRequired("username")
-	loginCmd.MarkFlagRequired("password")
 }
 
 func login() {

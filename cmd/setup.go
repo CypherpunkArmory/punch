@@ -69,5 +69,5 @@ func setupLogin() {
 	if err != nil {
 		reportError("Couldn't write refresh token to config - permissions maybe?", true)
 	}
-
+	fmt.Println("Login successful")
 }
