@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // From https://sosedoff.com/2015/05/25/ssh-port-forwarding-with-go.html
@@ -17,9 +19,9 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	go copyData(client, "client", remote, "remote", ioFinished, errorCh)
 	go copyData(remote, "remote", client, "client", ioFinished, errorCh)
 
-	ioFinished.Wait()
 	err := <-errorCh
 	if err != nil {
+		log.Debugf(err.Error())
 	}
 }
 
