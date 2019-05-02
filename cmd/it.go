@@ -30,7 +30,7 @@ var itCmd = &cobra.Command{
 			 punch it http:5000 https:5001`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if checkSubdomain(args[len(args)-1]) {
+		if len(args) > 1 && checkSubdomain(args[len(args)-1]) {
 			subdomain = args[len(args)-1]
 			args = args[:len(args)-1]
 		}
