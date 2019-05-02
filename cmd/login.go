@@ -40,5 +40,4 @@ func login() {
 	if err != nil {
 		reportError("Couldn't write refresh token to config - permissions maybe?", true)
 	}
-
 }

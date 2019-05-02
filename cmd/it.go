@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
+	"net/url"
 	"os"
-	"strconv"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -13,8 +15,12 @@ import (
 )
 
 type tunnelConf struct {
-	port        int
+	port        string
 	forwardType string
+}
+
+func (tc *tunnelConf) String() string {
+	return fmt.Sprintf("%s:%s", tc.forwardType, tc.port)
 }
 
 var itCmd = &cobra.Command{
@@ -46,16 +52,24 @@ var itCmd = &cobra.Command{
 
 func getTunnelConfig(input string) (tunnelConf, error) {
 	var output tunnelConf
-	var err error
+	allDigits := regexp.MustCompile("[0-9]+")
+	knownPorts := regexp.MustCompile("(http)|(https)")
+
 	conf := strings.Split(input, ":")
 	if len(conf) != 2 {
-		return output, errors.New("bad input")
+		return output, errors.New("bad input - can't determine port or protocol")
 	}
 	output.forwardType = conf[0]
-	output.port, err = strconv.Atoi(conf[1])
-	if err != nil {
-		return output, errors.New("bad input")
+	output.port = conf[1]
+
+	if !knownPorts.Match([]byte(output.forwardType)) {
+		return tunnelConf{}, errors.New("bad input - protocol must be http or https")
 	}
+
+	if !allDigits.Match([]byte(output.port)) {
+		return tunnelConf{}, errors.New("bad input - port must be numeric")
+	}
+
 	return output, nil
 }
 
@@ -70,17 +84,21 @@ func tunnelMultiple(confs []tunnelConf) {
 	if subdomain != "" && !checkSubdomain(subdomain) {
 		reportError("Invalid Subdomain", true)
 	}
+
 	publicKey, err := getPublicKey(publicKeyPath)
 	if err != nil {
 		os.Exit(3)
 	}
+
 	for index, t := range confs {
 		protocol[index] = t.forwardType
 	}
+
 	response, err := restAPI.CreateTunnelAPI(subdomain, publicKey, protocol)
 	if err != nil {
 		reportError(err.Error(), true)
 	}
+
 	if subdomain == "" {
 		subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
 	}
@@ -93,15 +111,28 @@ func tunnelMultiple(confs []tunnelConf) {
 				reportError("Could not delete tunnel. Use punch cleanup "+subdomain, true)
 			}
 		}
+
+		connectionURL, err := url.Parse(sshEndpoint)
+		if err != nil {
+			reportError("The ssh endpoint is not a valid URL", true)
+			os.Exit(3)
+		}
+
+		baseURL, err := url.Parse(baseURL)
+		if err != nil {
+			reportError("The base url is not a valid URL", true)
+		}
+
 		tunnelConfigs[index] = tunnel.Config{
-			ConnectionEndpoint: sshEndpoint,
+			ConnectionEndpoint: *connectionURL,
 			RestAPI:            restAPI,
 			TunnelEndpoint:     response,
 			EndpointType:       conf.forwardType,
 			PrivateKeyPath:     privateKeyPath,
-			EndpointURL:        baseURL,
+			EndpointURL:        *baseURL,
 			LocalPort:          conf.port,
 			Subdomain:          subdomain,
+			LogLevel:           logLevel,
 		}
 	}
 	var wg sync.WaitGroup
@@ -110,5 +141,4 @@ func tunnelMultiple(confs []tunnelConf) {
 		go tunnel.StartReverseTunnel(&tunnelConfigs[i], &wg)
 	}
 	wg.Wait()
-
 }
