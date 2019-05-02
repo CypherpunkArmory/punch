@@ -20,7 +20,6 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	ioFinished.Wait()
 	err := <-errorCh
 	if err != nil {
-		fmt.Println(err.Error())
 	}
 }
 

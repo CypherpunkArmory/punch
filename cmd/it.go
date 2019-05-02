@@ -141,8 +141,9 @@ func tunnelMultiple(confs []tunnelConf) {
 	}
 	var wg sync.WaitGroup
 	wg.Add(len(tunnelConfigs))
+	semaphore := tunnel.Semaphore{}
 	for i := 0; i < len(tunnelConfigs); i++ {
-		go tunnel.StartReverseTunnel(&tunnelConfigs[i], &wg)
+		go tunnel.StartReverseTunnel(&tunnelConfigs[i], &wg, &semaphore)
 	}
 	wg.Wait()
 }

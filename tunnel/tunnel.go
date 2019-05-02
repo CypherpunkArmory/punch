@@ -10,21 +10,20 @@ import (
 	"time"
 
 	"github.com/cypherpunkarmory/punch/backoff"
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
 )
 
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
-func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
+func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
 	defer cleanup(tunnelConfig)
 
 	if wg != nil {
 		defer wg.Done()
 	}
-
-	listener, err := createTunnel(tunnelConfig)
-
+	listener, err := createTunnel(tunnelConfig, semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err.Error())
 		return
@@ -53,8 +52,8 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 		os.Exit(0)
 	}()
 
-	fmt.Printf("\rNow forwarding localhost:%s to %s://%s.%s\n",
-		tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
+	fmt.Printf("Access your website at %s://%s.%s\n",
+		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
@@ -68,7 +67,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup) {
 
 }
 
-func createTunnel(tunnelConfig *Config) (net.Listener, error) {
+func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, error) {
 	c := make(chan os.Signal)
 
 	lvl, err := log.ParseLevel(tunnelConfig.LogLevel)
@@ -147,14 +146,7 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 	}
 
 	tunnelStarted := false
-	go func() {
-		s := spin.New()
-		for !tunnelStarted {
-			fmt.Printf("\rStarting tunnel %s ", s.Next())
-			time.Sleep(100 * time.Millisecond)
-		}
-	}()
-
+	tunnelStartingSpinner(semaphore, &tunnelStarted)
 	exponentialBackoff := backoff.NewExponentialBackOff()
 
 	// Connect to SSH remote server using serverEndpoint
@@ -188,6 +180,24 @@ func createTunnel(tunnelConfig *Config) (net.Listener, error) {
 	return listener, nil
 }
 
+func tunnelStartingSpinner(lock *Semaphore, tunnelStarted *bool) {
+	go func() {
+		if lock != nil {
+			if !lock.CanRun() {
+				return
+			}
+			defer lock.Done()
+		}
+		s := spin.New()
+		for !*tunnelStarted {
+			fmt.Printf("\rStarting tunnel %s ", s.Next())
+			time.Sleep(100 * time.Millisecond)
+		}
+		fmt.Printf("\rStarting tunnel ")
+		d := color.New(color.FgGreen, color.Bold)
+		d.Printf("✔\n")
+	}()
+}
 func cleanup(config *Config) {
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)

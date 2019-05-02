@@ -3,10 +3,12 @@ module github.com/cypherpunkarmory/punch
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible
+	github.com/fatih/color v1.7.0
 	github.com/google/jsonapi v0.0.0-20181016150055-d0428f63eb51
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kami-zh/go-capturer v0.0.0-20171211120116-e492ea43421d
-	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/mattn/go-colorable v0.1.1 // indirect
+	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/reiver/go-oi v0.0.0-20160325061615-431c83978379 // indirect
 	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e

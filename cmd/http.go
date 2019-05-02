@@ -79,5 +79,5 @@ func tunnelHTTP() {
 		Subdomain:          subdomain,
 		LogLevel:           logLevel,
 	}
-	tunnel.StartReverseTunnel(&tunnelConfig, nil)
+	tunnel.StartReverseTunnel(&tunnelConfig, nil, nil)
 }
