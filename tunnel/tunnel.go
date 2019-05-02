@@ -204,4 +204,5 @@ func cleanup(config *Config) {
 	if errSession != nil || errDelete != nil {
 		fmt.Fprintf(os.Stderr, "Could not delete tunnel. Use punch cleanup %s\n", config.Subdomain)
 	}
+	fmt.Println()
 }
