@@ -11,9 +11,9 @@ import (
 var reserveCmd = &cobra.Command{
 	Use:   "reserve [subdomain]",
 	Short: "Reserve a subdomain",
-	Long:  "Reserve a subdomain to secure the subdomain for future use.\n" +
-	       "Once reserved only you can use it.",
-	Args:  cobra.ExactArgs(1),
+	Long: "Reserve a subdomain to secure the subdomain for future use.\n" +
+		"Once reserved only you can use it.",
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		subdomain = args[0]
 		reserve()
