@@ -88,12 +88,12 @@ func init() {
 	viper.BindPFlag("sshendpoint", rootCmd.PersistentFlags().Lookup("sshendpoint"))
 	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 	viper.SetDefault("crashreporting", true)
-	viper.SetDefault("baseurl", "holepunch.io")
-	viper.SetDefault("sshendpoint", "api.holepunch.io")
+	viper.SetDefault("baseurl", "http://holepunch.io")
+	viper.SetDefault("sshendpoint", "http://api.holepunch.io:22")
 	viper.SetDefault("apiendpoint", "https://api.holepunch.io")
 	viper.SetDefault("publickeypath", "")
 	viper.SetDefault("privatekeypath", "")
-	viper.SetDefault("loglevel", "")
+	viper.SetDefault("loglevel", "ERROR")
 	rootCmd.SetHelpCommand(&cobra.Command{
 		Use:    "no-help",
 		Hidden: true,
