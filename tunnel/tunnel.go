@@ -221,5 +221,4 @@ func cleanup(config *Config) {
 		fmt.Fprintf(os.Stderr,
 			"We had some trouble deleting your tunnel. Use punch cleanup %s to make sure we know it's closed.\n", config.Subdomain)
 	}
-
 }
