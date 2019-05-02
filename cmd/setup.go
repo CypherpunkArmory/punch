@@ -14,8 +14,8 @@ import (
 var setupCmd = &cobra.Command{
 	Use:   "setup",
 	Short: "Setup punch (run this first)",
-	Long:  "Setup punch.\n" +
-	       "This will ask you for your holepunch credentials and help you create pub/priv keys if needed.",
+	Long: "Setup punch.\n" +
+		"This will ask you for your holepunch credentials and help you create pub/priv keys if needed.",
 	Run: func(cmd *cobra.Command, args []string) {
 		var setupKey string
 		setupLogin()
