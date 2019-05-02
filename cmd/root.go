@@ -89,7 +89,7 @@ func init() {
 	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 	viper.SetDefault("crashreporting", true)
 	viper.SetDefault("baseurl", "http://holepunch.io")
-	viper.SetDefault("sshendpoint", "http://api.holepunch.io:22")
+	viper.SetDefault("sshendpoint", "ssh://api.holepunch.io:22")
 	viper.SetDefault("apiendpoint", "https://api.holepunch.io")
 	viper.SetDefault("publickeypath", "")
 	viper.SetDefault("privatekeypath", "")
