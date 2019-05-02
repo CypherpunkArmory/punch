@@ -77,5 +77,6 @@ func tunnelHTTPS() {
 		Subdomain:          subdomain,
 		LogLevel:           logLevel,
 	}
-	tunnel.StartReverseTunnel(&tunnelConfig, nil, nil)
+	semaphore := tunnel.Semaphore{}
+	tunnel.StartReverseTunnel(&tunnelConfig, nil, &semaphore)
 }

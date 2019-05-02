@@ -191,12 +191,10 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 
 func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *string) {
 	go func() {
-		if lock != nil {
-			if !lock.CanRun() {
-				return
-			}
-			defer lock.Done()
+		if !lock.CanRun() {
+			return
 		}
+		defer lock.Done()
 		s := spin.New()
 		for *tunnelStatus == starting {
 			fmt.Printf("\rStarting tunnel %s ", s.Next())
