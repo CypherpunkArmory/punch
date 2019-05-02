@@ -34,7 +34,8 @@ func getPublicKey(path string) (string, error) {
 	path = fixFilePath(path)
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
-		reportError("Unable to find public key. Either set correct path in .punch.toml or generate a key using `punch generate-key`", false)
+		reportError("Punch requires an SSH private key to connect to our servers.  By default we do not use your existing keypair.  "+
+			"You can point to an existing key-pair by editing punch.toml or generate a single-purpose key using `punch generate-key`", false)
 		return "", err
 	}
 	return string(buf), nil
