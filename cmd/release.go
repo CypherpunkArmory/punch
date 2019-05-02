@@ -8,7 +8,7 @@ import (
 
 // releaseCmd represents the release command
 var releaseCmd = &cobra.Command{
-	Use:   "release -s [subdomain]",
+	Use:   "release [subdomain]",
 	Short: "Release subdomain",
 	Long:  `Release a subdomain you have reserved`,
 	Args:  cobra.ExactArgs(1),
