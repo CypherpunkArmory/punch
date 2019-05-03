@@ -34,7 +34,15 @@ var setupCmd = &cobra.Command{
 		if err != nil {
 			reportError("Could not generate key", true)
 		}
-		fmt.Println("Generated keys in the current directory")
+		fmt.Print("Generated keys in the current directory ")
+		d := color.New(color.FgGreen, color.Bold)
+		d.Printf("✔\n")
+		err = writeKeysToConfig("", "holepunch_key")
+		if err != nil {
+			reportError("Failed to update config file", true)
+		}
+		fmt.Print("Config file updated")
+		d.Printf(" ✔\n")
 	},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
