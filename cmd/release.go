@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -19,16 +20,18 @@ var releaseCmd = &cobra.Command{
 }
 
 func init() {
-	subdomainCmd.AddCommand(releaseCmd)
+	rootCmd.AddCommand(releaseCmd)
 }
 
 func release(subdomain string) {
-	if !checkSubdomain(subdomain) {
+	if !correctSubdomainRegex(subdomain) {
 		reportError("Invalid Subdomain", true)
 	}
 	err := restAPI.ReleaseSubdomainAPI(subdomain)
 	if err != nil {
 		reportError(err.Error(), true)
 	}
-	fmt.Println("Successfully released subdomain")
+	fmt.Print("Successfully released subdomain ")
+	d := color.New(color.FgGreen, color.Bold)
+	d.Printf("✔\n")
 }

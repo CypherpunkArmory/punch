@@ -10,7 +10,7 @@ import (
 	"github.com/kami-zh/go-capturer"
 )
 
-func TestCheckSubdomain(t *testing.T) {
+func TestcorrectSubdomainRegex(t *testing.T) {
 	cases := []struct {
 		Name     string
 		Input    string
@@ -21,7 +21,7 @@ func TestCheckSubdomain(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			actual := checkSubdomain(tc.Input)
+			actual := correctSubdomainRegex(tc.Input)
 			if actual != tc.Expected {
 				t.Fatal("Failed")
 			}

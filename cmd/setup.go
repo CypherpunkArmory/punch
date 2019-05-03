@@ -5,6 +5,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
@@ -12,7 +13,7 @@ import (
 
 var setupCmd = &cobra.Command{
 	Use:   "setup",
-	Short: "setup holepunch",
+	Short: "Setup holepunch",
 	Run: func(cmd *cobra.Command, args []string) {
 		var setupKey string
 		setupLogin()
@@ -69,5 +70,7 @@ func setupLogin() {
 	if err != nil {
 		reportError("Couldn't write refresh token to config - permissions maybe?", true)
 	}
-
+	fmt.Print("Login Succesful ")
+	d := color.New(color.FgGreen, color.Bold)
+	d.Printf("✔\n")
 }

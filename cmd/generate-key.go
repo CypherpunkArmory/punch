@@ -11,8 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -33,9 +35,24 @@ var generateKeyCmd = &cobra.Command{
 		}
 		err := generateKey(path, fileName)
 		if err != nil {
+			lvl, errLvl := log.ParseLevel(logLevel)
+			if errLvl != nil {
+				log.Errorf("\nLog level %s is not a valid level.", logLevel)
+			}
+
+			log.SetLevel(lvl)
+			log.Debugf("Failed to generate key: %s", err.Error())
+			reportError("Failed to generate key", true)
+		}
+		fmt.Print("SSH keys have been generated")
+		d := color.New(color.FgGreen, color.Bold)
+		d.Printf(" ✔\n")
+		err = writeKeysToConfig(path, fileName)
+		if err != nil {
 			reportError("Failed to update config file", true)
 		}
-		fmt.Println("SSH keys have been generated and the config file has been updated")
+		fmt.Print("Config file updated")
+		d.Printf(" ✔\n")
 	},
 }
 
@@ -78,6 +95,10 @@ func generateKey(keyPath string, fileName string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func writeKeysToConfig(keyPath string, fileName string) error {
 	viper.Set("privatekeypath", keyPath+fileName+".pem")
 	viper.Set("publickeypath", keyPath+fileName+".pub")
 

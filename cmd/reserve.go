@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -19,12 +20,11 @@ var reserveCmd = &cobra.Command{
 }
 
 func init() {
-	subdomainCmd.AddCommand(reserveCmd)
-
+	rootCmd.AddCommand(reserveCmd)
 }
 
 func reserve() {
-	if !checkSubdomain(subdomain) {
+	if !correctSubdomainRegex(subdomain) {
 		reportError("Invalid Subdomain", true)
 	}
 
@@ -32,5 +32,7 @@ func reserve() {
 	if err != nil {
 		reportError(err.Error(), true)
 	}
-	fmt.Println("Successfully reserved subdomain " + response.Name)
+	fmt.Print("Successfully reserved subdomain " + response.Name)
+	d := color.New(color.FgGreen, color.Bold)
+	d.Printf(" ✔\n")
 }
