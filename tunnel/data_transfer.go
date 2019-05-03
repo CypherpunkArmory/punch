@@ -35,7 +35,7 @@ func copyData(dst io.WriteCloser, dstName string, src io.ReadCloser, srcName str
 			dstName,
 			err.Error())
 	}
-	log.Debugf("Local <- Remote (%d bytes)", amt)
+	log.Debugf("%s <- %s (%d bytes)", dstName, srcName, amt)
 	src.Close()
 	dst.Close()
 }

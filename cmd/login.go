@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -42,7 +43,9 @@ func login() {
 	err = viper.WriteConfig()
 
 	if err != nil {
-		reportError("Couldn't write refresh token to config - permissions maybe?", true)
+		reportError("Couldn't write refresh token to config - are you able to write to ~/.config/holepunch/punch.toml?", true)
 	}
-	fmt.Println("Login successful")
+	fmt.Print("Login Succesful ")
+	d := color.New(color.FgGreen, color.Bold)
+	d.Printf("✔\n")
 }

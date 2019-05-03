@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -31,5 +32,7 @@ func reserve() {
 	if err != nil {
 		reportError(err.Error(), true)
 	}
-	fmt.Println("Successfully reserved subdomain " + response.Name)
+	fmt.Print("Successfully reserved subdomain " + response.Name)
+	d := color.New(color.FgGreen, color.Bold)
+	d.Printf(" ✔\n")
 }

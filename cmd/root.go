@@ -64,7 +64,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is ~/.punch)")
+	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "Default is $XDG_HOME/holepunch/~.punch.toml")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "", "Set the loglevel")
 	rootCmd.PersistentFlags().BoolVar(&crashReporting, "crashreporting", false, "Send crash reports to the developers")
 	err := rootCmd.PersistentFlags().MarkHidden("loglevel")

@@ -182,7 +182,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	// Listen on remote server port
 	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "listen open port ON remote server error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Could not open forwarding connection on remote server\n")
 		return listener, err
 	}
 	log.Debugf("Open listen port on %s", remoteEndpoint.String())
@@ -212,7 +212,9 @@ func cleanup(config *Config) {
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
-		fmt.Fprintf(os.Stderr, "Could not delete tunnel. Use punch cleanup %s\n", config.Subdomain)
+		fmt.Fprintf(os.Stderr,
+
+			"We had some trouble deleting your tunnel. Use punch cleanup %s to make sure we know it's closed.\n", config.Subdomain)
 	}
 
 }

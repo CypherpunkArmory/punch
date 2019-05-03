@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -30,5 +31,7 @@ func release(subdomain string) {
 	if err != nil {
 		reportError(err.Error(), true)
 	}
-	fmt.Println("Successfully released subdomain")
+	fmt.Print("Successfully released subdomain ")
+	d := color.New(color.FgGreen, color.Bold)
+	d.Printf("✔\n")
 }
