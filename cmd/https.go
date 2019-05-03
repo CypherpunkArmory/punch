@@ -10,7 +10,7 @@ import (
 
 // httpsCmd represents the https command
 var httpsCmd = &cobra.Command{
-	Use:   "https [port]",
+	Use:   "https [port] [subdomain]",
 	Short: "Expose a local https web server on the port you specify",
 	Long: "Expose a local https server on the port you specify.\n" +
 		"Example: `punch https 8443` will expose a local https web server running on port 8443.\n" +
