@@ -10,10 +10,16 @@ import (
 
 // httpsCmd represents the https command
 var httpsCmd = &cobra.Command{
-	Use:   "https [port]",
-	Short: "Expose a https web server over the port you specify",
-	Long:  `To expose a https web server on port 443 punch https 443`,
-	Args:  cobra.RangeArgs(1, 2),
+	Use:   "https <port> [subdomain]",
+	Short: "Expose a local https web server on the port you specify",
+	Long: "Expose a local https server on the port you specify.\n" +
+		"Example: `punch https 8443` will expose a local https web server running on port 8443.\n" +
+		"You can provide an optional 2nd argument to specify the name of a reserved subdomain you want to\n" +
+		"associate this with.\n" +
+		"Example: `punch https 8443 mydomain` will expose a local https web server running on port 8443 via\n" +
+		"         \"https://mydomain.holepunch.io\".\n" +
+		"Otherwise it will default to using a new unreserved subdomain.",
+	Args: cobra.RangeArgs(1, 2),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		if len(args) == 2 {

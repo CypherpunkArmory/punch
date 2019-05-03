@@ -13,7 +13,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List your subdomains",
-	Long:  `List subdomains you have previously reserved and also subdomains that are currently in use by you`,
+	Long:  "List subdomains you have previously reserved or that are currently in use by you.",
 	Run: func(cmd *cobra.Command, args []string) {
 		subdomainList()
 	},

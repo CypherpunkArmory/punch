@@ -36,8 +36,11 @@ var version string
 var rootCmd = &cobra.Command{
 	Version: version,
 	Use:     "punch",
-	Short:   "Like a holepunch for your network",
-	Long:    `HolePunch`,
+	Short:   "punch - CLI for holepunch.io",
+	Long: "punch - CLI for holepunch.io\n" +
+		"To get started, run `punch setup`.\n" +
+		"Then you could expose a local web server running on port 8080 like this, `punch http 8080`.\n" +
+		"Look at the commands below to see what else you can do.",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		initConfig()
 		err := tryStartSession()
