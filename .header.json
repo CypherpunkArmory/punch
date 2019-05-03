@@ -1,0 +1,13 @@
+{
+    "Dir": "./tunnel",
+    "Template": ".header.txt",
+    "Includes": [
+        "**.go"
+    ],
+    "Excludes": [],
+    "UseDefaultExcludes": true,
+    "Properties": {
+        "Year": "2018-2019",
+        "Owner": "Orb.House, LLC"
+    }
+  }
