@@ -7,7 +7,7 @@ import (
 )
 
 var cleanupCmd = &cobra.Command{
-	Use:   "cleanup [subdomain]",
+	Use:   "cleanup <subdomain>",
 	Short: "Cleanup a subdomain that is incorrectly marked as \"In Use\"",
 	Long: "Cleanup a subdomain that is incorrectly marked as \"In Use\".\n" +
 		"This closes the tunnel from our end and updates the subdomain database.",

@@ -11,7 +11,7 @@ import (
 
 // httpCmd represents the http command
 var httpCmd = &cobra.Command{
-	Use:   "http [port] [subdomain]",
+	Use:   "http <port> [subdomain]",
 	Short: "Expose a local web server on the port you specify",
 	Long: "Expose a local web server on the port you specify.\n" +
 		"Example: `punch http 8080` will expose a local web server running on port 8080.\n" +

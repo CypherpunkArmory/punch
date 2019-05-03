@@ -9,7 +9,7 @@ import (
 
 // reserveCmd represents the reserve command
 var reserveCmd = &cobra.Command{
-	Use:   "reserve [subdomain]",
+	Use:   "reserve <subdomain>",
 	Short: "Reserve a subdomain",
 	Long: "Reserve a subdomain to secure the subdomain for future use.\n" +
 		"Once reserved only you can use it.",

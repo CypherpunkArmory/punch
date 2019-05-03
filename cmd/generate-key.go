@@ -22,7 +22,7 @@ import (
 var fileName string
 
 var generateKeyCmd = &cobra.Command{
-	Use:   "generate-key <directory>",
+	Use:   "generate-key [directory]",
 	Short: "Generates a pub/priv keypair at the specified location",
 	Long: "Generates a pub/priv keypair at the specified location otherwise defaults to current directory.\n" +
 		"You can also specify a name for it using the -n flag.",

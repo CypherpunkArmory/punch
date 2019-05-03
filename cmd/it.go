@@ -24,7 +24,7 @@ func (tc *tunnelConf) String() string {
 }
 
 var itCmd = &cobra.Command{
-	Use:   "it [ports] [subdomain]",
+	Use:   "it <type:port>... [subdomain]",
 	Short: "Expose a local web server on the ports you specify",
 	Long: "Expose a local web server on the ports you specify.\n" +
 		"Example: `punch it http:8080 https:8443` will expose a local web server running on port 8080 and\n" +
