@@ -22,7 +22,7 @@ func init() {
 }
 
 func cleanup(openSubdomain string) {
-	if !checkSubdomain(openSubdomain) {
+	if !correctSubdomainRegex(openSubdomain) {
 		reportError("Invalid Subdomain", true)
 	}
 	err := restAPI.DeleteTunnelAPI(openSubdomain)

@@ -24,7 +24,7 @@ func init() {
 }
 
 func reserve() {
-	if !checkSubdomain(subdomain) {
+	if !correctSubdomainRegex(subdomain) {
 		reportError("Invalid Subdomain", true)
 	}
 

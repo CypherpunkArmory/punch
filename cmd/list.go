@@ -32,18 +32,18 @@ func subdomainList() {
 }
 
 func printSubdomains(response []restapi.Subdomain) {
-	w := new(tabwriter.Writer)
-	// minwidth, tabwidth, padding, padchar, flags
-	w.Init(os.Stdout, 16, 8, 0, '\t', 0)
-
-	defer w.Flush()
 	if len(response) == 0 {
 		fmt.Println("You have no subdomains")
 		return
 	}
-	fmt.Fprintf(w, "%s\t%s\t%s\t", "Subdomain Name", "Reserved", "In Use")
-	fmt.Fprintf(w, "\n%s\t%s\t%s\t\n", "--------------", "--------", "------")
+	writer := new(tabwriter.Writer)
+	// minwidth, tabwidth, padding, padchar, flags
+	writer.Init(os.Stdout, 16, 8, 0, '\t', 0)
+
+	defer writer.Flush()
+	fmt.Fprintf(writer, "%s\t%s\t%s\t", "Subdomain Name", "Reserved", "In Use")
+	fmt.Fprintf(writer, "\n%s\t%s\t%s\t\n", "--------------", "--------", "------")
 	for _, elem := range response {
-		fmt.Fprintf(w, "%s\t%t\t%t\t\n", elem.Name, elem.Reserved, elem.InUse)
+		fmt.Fprintf(writer, "%s\t%t\t%t\t\n", elem.Name, elem.Reserved, elem.InUse)
 	}
 }

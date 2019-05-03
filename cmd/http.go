@@ -33,7 +33,7 @@ func init() {
 }
 
 func tunnelHTTP() {
-	if subdomain != "" && !checkSubdomain(subdomain) {
+	if subdomain != "" && !correctSubdomainRegex(subdomain) {
 		reportError("Invalid Subdomain", true)
 	}
 	if !checkPort(port) {

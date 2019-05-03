@@ -24,7 +24,7 @@ func init() {
 }
 
 func release(subdomain string) {
-	if !checkSubdomain(subdomain) {
+	if !correctSubdomainRegex(subdomain) {
 		reportError("Invalid Subdomain", true)
 	}
 	err := restAPI.ReleaseSubdomainAPI(subdomain)

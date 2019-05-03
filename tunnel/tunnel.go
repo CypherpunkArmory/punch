@@ -16,8 +16,15 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var done = "done"
-var starting = "starting"
+type tunnelStatus struct {
+	state string
+}
+
+const (
+	tunnelError    string = "error"
+	tunnelDone     string = "done"
+	tunnelStarting string = "starting"
+)
 
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
@@ -40,8 +47,8 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	}
 
 	// This catches CTRL C and closes the ssh
-	s := make(chan os.Signal)
-	signal.Notify(s,
+	startCloseChannel := make(chan os.Signal)
+	signal.Notify(startCloseChannel,
 		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
 		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
 		syscall.SIGINT,  // Ctrl+C
@@ -50,7 +57,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	)
 
 	go func() {
-		<-s
+		<-startCloseChannel
 		if semaphore.CanRun() {
 			cleanup(tunnelConfig)
 			os.Exit(0)
@@ -73,8 +80,27 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 }
 
 func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, error) {
-	c := make(chan os.Signal)
+	tunnelCreating := tunnelStatus{tunnelStarting}
+	createCloseChannel := make(chan os.Signal)
+	signal.Notify(createCloseChannel,
+		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
+		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
+		syscall.SIGINT,  // Ctrl+C
+		syscall.SIGQUIT, // Ctrl-\
+		syscall.SIGHUP,  // "terminal is disconnected"
+	)
+	defer signal.Stop(createCloseChannel)
+	go func() {
+		<-createCloseChannel
+		log.Debugf("Closing tunnel")
+		tunnelCreating.state = tunnelError
+		for !semaphore.CanRun() {
 
+		}
+		defer semaphore.Done()
+		cleanup(tunnelConfig)
+		os.Exit(0)
+	}()
 	lvl, err := log.ParseLevel(tunnelConfig.LogLevel)
 	if err != nil {
 		log.Errorf("\nLog level %s is not a valid level.", tunnelConfig.LogLevel)
@@ -83,26 +109,6 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	log.SetLevel(lvl)
 	log.Debugf("Debug Logging activated")
 
-	signal.Notify(c,
-		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
-		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
-		syscall.SIGINT,  // Ctrl+C
-		syscall.SIGQUIT, // Ctrl-\
-		syscall.SIGHUP,  // "terminal is disconnected"
-	)
-	tunnelStatus := starting
-	go func() {
-		<-c
-		log.Debugf("Closing tunnel")
-		tunnelStatus = "error"
-		for !semaphore.CanRun() {
-
-		}
-		defer semaphore.Done()
-		cleanup(tunnelConfig)
-		os.Exit(0)
-	}()
-	defer signal.Stop(c)
 	var listener net.Listener
 
 	sshPort := tunnelConfig.TunnelEndpoint.SSHPort
@@ -130,7 +136,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		Port: remoteEndpointPort,
 	}
 
-	privateKey, err := privateKeyFile(tunnelConfig.PrivateKeyPath)
+	privateKey, err := readPrivateKeyFile(tunnelConfig.PrivateKeyPath)
 	if err != nil {
 		return listener, err
 	}
@@ -155,7 +161,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		return listener, err
 	}
 
-	tunnelStartingSpinner(semaphore, &tunnelStatus)
+	tunnelStartingSpinner(semaphore, &tunnelCreating)
 	exponentialBackoff := backoff.NewExponentialBackOff()
 
 	// Connect to SSH remote server using serverEndpoint
@@ -164,7 +170,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 		log.Debugf("Dial into SSHD Container %s", serverEndpoint.String())
 		if err == nil {
-			tunnelStatus = done
+			tunnelCreating.state = tunnelDone
 			break
 		}
 		wait := exponentialBackoff.NextBackOff()
@@ -189,18 +195,18 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	return listener, nil
 }
 
-func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *string) {
+func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *tunnelStatus) {
 	go func() {
 		if !lock.CanRun() {
 			return
 		}
 		defer lock.Done()
 		s := spin.New()
-		for *tunnelStatus == starting {
+		for tunnelStatus.state == tunnelStarting {
 			fmt.Printf("\rStarting tunnel %s ", s.Next())
 			time.Sleep(100 * time.Millisecond)
 		}
-		if *tunnelStatus == done {
+		if tunnelStatus.state == tunnelDone {
 			fmt.Printf("\rStarting tunnel ")
 			d := color.New(color.FgGreen, color.Bold)
 			d.Printf("✔\n")
@@ -213,7 +219,6 @@ func cleanup(config *Config) {
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
 		fmt.Fprintf(os.Stderr,
-
 			"We had some trouble deleting your tunnel. Use punch cleanup %s to make sure we know it's closed.\n", config.Subdomain)
 	}
 

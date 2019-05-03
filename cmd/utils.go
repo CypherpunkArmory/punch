@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func checkSubdomain(subdomain string) bool {
+func correctSubdomainRegex(subdomain string) bool {
 	r, _ := regexp.Compile(`^[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?\z`)
 	return r.MatchString(subdomain)
 }

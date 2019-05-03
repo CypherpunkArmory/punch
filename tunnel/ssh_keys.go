@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func privateKeyFile(path string) (ssh.AuthMethod, error) {
+func readPrivateKeyFile(path string) (ssh.AuthMethod, error) {
 	log.Debugf("Parsing privatekey %s", path)
 
 	buffer, err := ioutil.ReadFile(path)
