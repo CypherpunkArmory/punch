@@ -61,8 +61,6 @@ github.com/reiver/go-oi v0.0.0-20160325061615-431c83978379 h1:NBPkf14RzPYmr3478X
 github.com/reiver/go-oi v0.0.0-20160325061615-431c83978379/go.mod h1:RrDBct90BAhoDTxB1fenZwfykqeGvhI6LsNfStJoEkI=
 github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e h1:quuzZLi72kkJjl+f5AQ93FMcadG19WkS7MO6TXFOSas=
 github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e/go.mod h1:+5vNVvEWwEIx86DB9Ke/+a5wBI464eDRo3eF0LcfpWg=
-github.com/rendon/testcli v0.0.0-20161027181003-6283090d169f h1:onGP+qmYmjKs7pkmi9j0mwyr97/D5wki80e74aKIOxg=
-github.com/rendon/testcli v0.0.0-20161027181003-6283090d169f/go.mod h1:cq57a4l475CeMvE7RRpSui1MEqCmhirIt1E7kl8BC2Q=
 github.com/rhysd/go-github-selfupdate v1.1.0 h1:+aMomy69YCYxJ6kr13nYIgAJWSB1kHK5M5YpbmjQkWo=
 github.com/rhysd/go-github-selfupdate v1.1.0/go.mod h1:jbfShZ+Nl3IHUgr77kwQjObcWf1z961UAoD6p5LrPBU=
 github.com/rollbar/rollbar-go v1.0.2 h1:uA3+z0jq6ka9WUUt9VX/xuiQZXZyWRoeKvkhVvLO9Jc=
