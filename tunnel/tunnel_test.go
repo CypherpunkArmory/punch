@@ -20,7 +20,7 @@ func Test_privateKeyFile(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			actual, _ := privateKeyFile(tc.path)
+			actual, _ := readPrivateKeyFile(tc.path)
 			if actual == nil && !tc.shouldFail {
 				t.Fatal("Failed")
 			}
