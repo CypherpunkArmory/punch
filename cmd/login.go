@@ -18,6 +18,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -35,7 +37,7 @@ var loginCmd = &cobra.Command{
 		"If this is your first time using punch, you should use `punch setup` instead of `punch login`.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if username != "" && password != "" {
-			login()
+			login(username, password)
 			return
 		}
 		setupLogin() // This function is located in cmd/setup.go
@@ -51,11 +53,16 @@ func init() {
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Your holepunch.io password")
 }
 
-func login() {
+func login(username string, password string) {
 	response, err := restAPI.Login(username, password)
 
 	if err != nil {
-		reportError("Login Failed: "+err.Error(), true)
+		if err.Error() == "Must confirm email before you use the service" {
+			resendEmail(username)
+			os.Exit(0)
+		} else {
+			reportError("Login Failed: "+err.Error(), true)
+		}
 	}
 
 	viper.Set("apikey", response.RefreshToken)
@@ -67,4 +74,24 @@ func login() {
 	fmt.Print("Login Succesful ")
 	d := color.New(color.FgGreen, color.Bold)
 	d.Printf("✔\n")
+}
+
+func resendEmail(username string) {
+	var resendKey string
+	fmt.Print("Would you like to resend your confirmation email? (Y/n): ")
+	fmt.Scanln(&resendKey)
+	resendKey = strings.ToLower(resendKey)
+	if resendKey != "" && !strings.HasPrefix(resendKey, "y") && !strings.HasPrefix(resendKey, "n") {
+		reportError("Invalid input", true)
+	}
+	if strings.HasPrefix(resendKey, "n") {
+		// Not sure what to tell them here
+		fmt.Println("You need to confirm your email to use this service.")
+		return
+	}
+	err := restAPI.ResendConfirmationEmail(username)
+	if err != nil {
+		reportError("Resend Failed: "+err.Error(), true)
+	}
+	fmt.Print("An email has been sent to your account. Please follow the link sent to confirm your account.")
 }
