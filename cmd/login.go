@@ -78,7 +78,7 @@ func login(username string, password string) {
 
 func resendEmail(username string) {
 	var resendKey string
-	fmt.Print("Would you like to resend your confirmation email? (Y/n): ")
+	fmt.Print("You need to confirm your email before you use this service.\nWould you like to resend your confirmation email? (Y/n): ")
 	fmt.Scanln(&resendKey)
 	resendKey = strings.ToLower(resendKey)
 	if resendKey != "" && !strings.HasPrefix(resendKey, "y") && !strings.HasPrefix(resendKey, "n") {
@@ -86,7 +86,6 @@ func resendEmail(username string) {
 	}
 	if strings.HasPrefix(resendKey, "n") {
 		// Not sure what to tell them here
-		fmt.Println("You need to confirm your email to use this service.")
 		return
 	}
 	err := restAPI.ResendConfirmationEmail(username)
