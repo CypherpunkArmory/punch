@@ -19,7 +19,6 @@ package tunnel
 import (
 	"fmt"
 	"io"
-	"net"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -28,7 +27,7 @@ import (
 // From https://sosedoff.com/2015/05/25/ssh-port-forwarding-with-go.html
 // Handle local client connections and tunnel data to the remote server
 // Will use io.Copy - http://golang.org/pkg/io/#Copy
-func handleClient(client net.Conn, remote net.Conn) {
+func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 	ioFinished := &sync.WaitGroup{}
 	ioFinished.Add(2)
 	errorCh := make(chan error, 2)
