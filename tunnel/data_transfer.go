@@ -45,7 +45,7 @@ func handleClient(client net.Conn, remote net.Conn) {
 	}
 }
 
-func copyData(dst net.Conn, dstName string, src net.Conn, srcName string, done *sync.WaitGroup, errorCh chan error) {
+func copyData(dst io.WriteCloser, dstName string, src io.ReadCloser, srcName string, done *sync.WaitGroup, errorCh chan error) {
 	defer done.Done()
 	amt, err := io.Copy(dst, src)
 	if err != nil {
