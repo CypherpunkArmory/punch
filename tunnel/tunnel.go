@@ -86,8 +86,8 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		log.Debugf("Dial to local %s", localEndpoint.String())
-		remote, errRemote := net.Dial("tcp", localEndpoint.String())
 		client, errClient := listener.Accept()
+		remote, errRemote := net.Dial("tcp", localEndpoint.String())
 		if errRemote == nil && errClient == nil && client != nil && remote != nil {
 			go handleClient(client, remote)
 		}
