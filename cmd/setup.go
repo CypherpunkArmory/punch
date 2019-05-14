@@ -23,7 +23,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -84,19 +83,5 @@ func setupLogin() {
 	}
 	fmt.Println()
 	password = string(bytePassword)
-	response, err := restAPI.Login(username, password)
-
-	if err != nil {
-		reportError("Login Failed: "+err.Error(), true)
-	}
-
-	viper.Set("apikey", response.RefreshToken)
-	err = viper.WriteConfig()
-
-	if err != nil {
-		reportError("Couldn't write refresh token to config - permissions maybe?", true)
-	}
-	fmt.Print("Login Succesful ")
-	d := color.New(color.FgGreen, color.Bold)
-	d.Printf("✔\n")
+	login(username, password)
 }

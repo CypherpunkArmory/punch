@@ -17,10 +17,13 @@
 package restapi
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/google/jsonapi"
 )
 
 //SessionResponse Json response for login/session refresh
@@ -34,6 +37,11 @@ type SessionResponse struct {
 type loginRequest struct {
 	Username string `json:"email"`
 	Password string `json:"password"`
+}
+
+type resendRequest struct {
+	ID    string `jsonapi:"primary,email_confirm"`
+	Email string `jsonapi:"attr,email"`
 }
 
 //StartSession Start a session and set the restClient to the current access token
@@ -111,4 +119,41 @@ func (restClient *RestClient) Login(username string, password string) (SessionRe
 	restClient.RefreshToken = responseBody.RefreshToken
 	restClient.SetAPIKey(responseBody.AccessToken)
 	return responseBody, nil
+}
+
+//ResendConfirmationEmail If user is unconfirmed this will resend a confirmation email
+func (restClient *RestClient) ResendConfirmationEmail(email string) error {
+	url := restClient.URL + "/account/token"
+
+	reqBody := resendRequest{
+		Email: email,
+	}
+	var outputBuffer bytes.Buffer
+	_ = bufio.NewWriter(&outputBuffer)
+	err := jsonapi.MarshalPayload(&outputBuffer, &reqBody)
+	if err != nil {
+		return errorUnableToParse
+	}
+	req, _ := http.NewRequest("POST", url, &outputBuffer)
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := restClient.Client.Do(req)
+
+	if err != nil {
+		return errorCantConnectRestCall
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode > 399 {
+		errorBody := ResponseError{}
+		err = json.Unmarshal(body, &errorBody)
+		if err != nil {
+			return err
+		}
+		return &errorBody
+	}
+	return nil
 }
