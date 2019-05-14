@@ -34,10 +34,13 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 
 	go copyData(client, "client", remote, "remote", ioFinished, errorCh)
 	go copyData(remote, "remote", client, "client", ioFinished, errorCh)
+	ioFinished.Wait()
 
-	err := <-errorCh
-	if err != nil {
-		log.Debugf(err.Error())
+	select {
+	case firstError := <-errorCh:
+		log.Debugf(firstError.Error())
+	default:
+		return
 	}
 }
 
