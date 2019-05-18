@@ -61,7 +61,7 @@ func reportError(err string, exit bool) {
 	if err == "" {
 		fmt.Fprintf(os.Stderr, "Unexpected error occured\n")
 	} else {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+		fmt.Fprintf(os.Stderr, "%s\n", strings.ToUpper(string(err[0]))+err[1:])
 	}
 	if exit {
 		os.Exit(1)
