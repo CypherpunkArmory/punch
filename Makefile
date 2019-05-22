@@ -2,8 +2,6 @@
 # Includes cross-compiling, installation, cleanup
 # ########################################################## #
 
-SHELL=/bin/bash
-
 # Check for required command tools to build or stop immediately
 ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
