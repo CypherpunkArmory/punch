@@ -9,6 +9,8 @@ BINARY=punch
 VERSION=
 ROLLBAR_TOKEN=
 ARCHITECTURES=386 amd64
+LINUX_ARCHITECTURES=386 amd64 arm arm64
+ARM_SUB_ARCHITECTURES=5 6 7
 # If more than one release is made in a day this should be incremented
 # I did not find a good way to do this in CircleCI
 CALVER=`date +%Y.%m.%d`.1
@@ -22,8 +24,24 @@ release: all zip
 all: clean windows linux macos
 
 define build-os
-	$(foreach GOARCH, $(ARCHITECTURES), \
-		$(shell export GOOS=$(1); export GOARCH=$(GOARCH); go build ${LDFLAGS} -o output/$(BINARY)-$(1)-$(GOARCH)$(2);))
+	if [ "$(1)" = "linux" ]; then \
+		for GOARCH in $(LINUX_ARCHITECTURES); do \
+			if [ "$$GOARCH" = "arm" ]; then \
+				for GOARM in $(ARM_SUB_ARCHITECTURES); do \
+					echo "building $(1) $${GOARCH}v$${GOARM}"; \
+					export GOOS=$(1); export GOARCH=$$GOARCH; export GOARM=$$GOARM; go build ${LDFLAGS} -o output/$(BINARY)-$(1)-$${GOARCH}v$${GOARM}$(2); \
+				done; \
+			else \
+				echo "building $(1) $$GOARCH"; \
+				export GOOS=$(1); export GOARCH=$$GOARCH; go build ${LDFLAGS} -o output/$(BINARY)-$(1)-$${GOARCH}$(2); \
+			fi; \
+		done; \
+	else \
+		for GOARCH in $(ARCHITECTURES); do \
+			echo "building $(1) $$GOARCH"; \
+			export GOOS=$(1); export GOARCH=$$GOARCH; go build ${LDFLAGS} -o output/$(BINARY)-$(1)-$${GOARCH}$(2); \
+		done; \
+	fi;
 endef
 
 windows: 
