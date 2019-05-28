@@ -11,9 +11,9 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-var ErrNoHostKeyFound = fmt.Errorf("sshfp: no host key found")
+var errNoHostKeyFound = fmt.Errorf("sshfp: no host key found")
 
-func DNSHostKeyCallback(hostname string, remote net.Addr, key ssh.PublicKey) error {
+func dnsHostKeyCallback(hostname string, remote net.Addr, key ssh.PublicKey) error {
 	txtrecords, err := net.LookupTXT("api.holepunch.io")
 	if err != nil {
 		return err
@@ -39,5 +39,5 @@ func DNSHostKeyCallback(hostname string, remote net.Addr, key ssh.PublicKey) err
 		}
 	}
 
-	return ErrNoHostKeyFound
+	return errNoHostKeyFound
 }

@@ -156,7 +156,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	if err != nil {
 		return listener, err
 	}
-	hostKeyCallBack := DNSHostKeyCallback
+	hostKeyCallBack := dnsHostKeyCallback
 	if tunnelConfig.ConnectionEndpoint.Hostname() != "api.holepunch.io" {
 		fmt.Println("Ignoring hostkey")
 		hostKeyCallBack = ssh.InsecureIgnoreHostKey()
