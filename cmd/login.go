@@ -92,5 +92,5 @@ func resendEmail(username string) {
 	if err != nil {
 		reportError("Resend Failed: "+err.Error(), true)
 	}
-	fmt.Print("An email has been sent to your account. Please follow the link sent to confirm your account.")
+	fmt.Print("An email has been sent to your account. Please follow the link sent to confirm your account.\n")
 }
