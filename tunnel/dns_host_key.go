@@ -29,14 +29,12 @@ func DNSHostKeyCallback(hostname string, remote net.Addr, key ssh.PublicKey) err
 			continue
 		}
 		fingerPrint := sshfp[2]
-		fmt.Println(fingerPrint)
 		fp, err := hex.DecodeString(fingerPrint)
 		if err != nil {
 			continue
 		}
 
 		if bytes.Equal(fp, keyFpSHA256[:]) {
-			fmt.Println("Found a match")
 			return nil
 		}
 	}
