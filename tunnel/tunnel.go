@@ -156,20 +156,22 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	if err != nil {
 		return listener, err
 	}
-
-	sshConfig := &ssh.ClientConfig{
+	hostKeyCallBack := dnsHostKeyCallback
+	if tunnelConfig.ConnectionEndpoint.Hostname() != "api.holepunch.io" {
+		fmt.Println("Ignoring hostkey")
+		hostKeyCallBack = ssh.InsecureIgnoreHostKey()
+	}
+	sshJumpConfig := &ssh.ClientConfig{
 		User: "punch",
 		Auth: []ssh.AuthMethod{
-			privateKey,
 			ssh.Password(""),
 		},
-		//TODO: Maybe fix this. Will be rotating so dont know if possible
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCallBack,
 		Timeout:         0,
 	}
 
 	log.Debugf("Dial into Jump Server %s", jumpServerEndpoint.String())
-	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshConfig)
+	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshJumpConfig)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error contacting the Holepunch Server.")
@@ -193,8 +195,16 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 		log.Debugf("Backoff Tick %s", wait.String())
 		time.Sleep(wait)
 	}
-
-	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshConfig)
+	sshTunnelConfig := &ssh.ClientConfig{
+		User: "punch",
+		Auth: []ssh.AuthMethod{
+			privateKey,
+		},
+		//TODO: Maybe fix this. Will be rotating so dont know if possible
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         0,
+	}
+	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshTunnelConfig)
 	if err != nil {
 		return listener, err
 	}
