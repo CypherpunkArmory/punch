@@ -32,7 +32,7 @@ var tcpCmd = &cobra.Command{
 	Long: "Expose a local tcp port you specify.\n" +
 		"Example: `punch tcp 8080` will expose a local tcp port running on port 8080.\n",
 	Args: cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command) {
+	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 		port = args[0]
 		if err != nil {
