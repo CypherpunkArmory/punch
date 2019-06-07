@@ -37,6 +37,39 @@ type Tunnel struct {
 	Subdomain *Subdomain `jsonapi:"relation,subdomain,omitempty"`
 }
 
+//ListTunnelsAPI get list of tunnels
+func (restClient *RestClient) ListTunnelsAPI() ([]Tunnel, error) {
+	tunnelList := []Tunnel{}
+	url := restClient.URL + "/tunnels"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, errorCantConnectRestCall
+	}
+	resp, err := restClient.Client.Do(req)
+	if err != nil {
+		return nil, errorCantConnectRestCall
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode > 399 {
+		errObject := new(jsonapi.ErrorObject)
+		err = jsonapi.UnmarshalPayload(resp.Body, errObject)
+		if err != nil {
+			return tunnelList, err
+		}
+		return tunnelList, errObject
+	}
+	responseBody, err := jsonapi.UnmarshalManyPayload(resp.Body, reflect.TypeOf(new(Tunnel)))
+	if err != nil {
+		return tunnelList, errorUnableToParse
+	}
+	for _, tunnel := range responseBody {
+		s, _ := tunnel.(*Tunnel)
+		tunnelList = append(tunnelList, *s)
+	}
+
+	return tunnelList, nil
+}
+
 //CreateTunnelAPI calls holepunch web api to get tunnel details
 func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string, protocol []string) (Tunnel, error) {
 	tunnelReturn := Tunnel{}
