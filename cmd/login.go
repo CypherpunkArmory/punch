@@ -71,7 +71,7 @@ func login(username string, password string) {
 	if err != nil {
 		reportError("Couldn't write refresh token to config - are you able to write to ~/.config/holepunch/punch.toml?", true)
 	}
-	fmt.Print("Login Succesful ")
+	fmt.Print("Login Successful ")
 	d := color.New(color.FgGreen, color.Bold)
 	d.Printf("✔\n")
 }
