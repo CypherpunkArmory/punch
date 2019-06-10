@@ -47,6 +47,9 @@ var generateKeyCmd = &cobra.Command{
 		path := ""
 		if len(args) > 0 {
 			path = args[0]
+			if !strings.HasSuffix(path, string(filepath.Separator)) {
+				path = path + string(filepath.Separator)
+			}
 			path = fixFilePath(path)
 		}
 		err := generateKey(path, fileName)
