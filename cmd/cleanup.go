@@ -17,25 +17,39 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
 )
+
+var clearAll bool
 
 var cleanupCmd = &cobra.Command{
 	Use:   "cleanup <subdomain>",
 	Short: "Cleanup a subdomain that is incorrectly marked as \"In Use\"",
 	Long: "Cleanup a subdomain that is incorrectly marked as \"In Use\".\n" +
 		"This closes the tunnel from our end and updates the subdomain database.",
-	Args: cobra.ExactArgs(1),
+	Args: func(cmd *cobra.Command, args []string) error {
+		if !clearAll && len(args) < 1 {
+			return errors.New("Requires a subdomain argument\n")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		subdomain = args[0]
-		cleanup(subdomain)
+		if clearAll {
+			cleanupAll()
+		} else {
+			subdomain = args[0]
+			cleanup(subdomain)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(cleanupCmd)
+	cleanupCmd.Flags().BoolVarP(&clearAll, "all", "a", false, "Cleanup all subdomains incorrectly marked as in use")
 }
 
 func cleanup(openSubdomain string) {
@@ -46,6 +60,20 @@ func cleanup(openSubdomain string) {
 	if err != nil {
 		reportError(err.Error(), true)
 	}
-	fmt.Println("Successfully closed tunnel")
+	fmt.Printf("%s%s\n", "Successfully closed tunnel for subdomain: ", openSubdomain)
+}
 
+func cleanupAll() {
+	response, err := restAPI.ListSubdomainAPI()
+	if err != nil {
+		reportError(err.Error(), true)
+	}
+
+	for _, elem := range response {
+		if !elem.InUse {
+			continue
+		}
+
+		cleanup(elem.Name)
+	}
 }
