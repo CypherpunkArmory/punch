@@ -32,7 +32,7 @@ var cleanupCmd = &cobra.Command{
 		"This closes the tunnel from our end and updates the subdomain database.",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if !clearAll && len(args) < 1 {
-			return errors.New("Requires a subdomain argument\n")
+			return errors.New("requires a subdomain argument")
 		}
 
 		return nil
