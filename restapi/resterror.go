@@ -24,7 +24,7 @@ import (
 var errorUnownedSubdomain = errors.New("you do not own this subdomain")
 var errorCantConnectRestCall = errors.New("problem contacting the server")
 var errorUnableToParse = errors.New("can't parse the json response")
-var errorUnownedTunnel = errors.New("you do not own this subdomain")
+var errorUnownedTunnel = errors.New("this subdomain is not associated to an open tunnel")
 var errorUnableToDelete = errors.New("failed to delete")
 
 //ResponseError JSONapi response error
