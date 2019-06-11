@@ -44,7 +44,7 @@ var generateKeyCmd = &cobra.Command{
 		"You can also specify a name for it using the -n flag.",
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		path := ""
+		path := configPath + string(filepath.Separator)
 		if len(args) > 0 {
 			path = args[0]
 			if !strings.HasSuffix(path, string(filepath.Separator)) {
