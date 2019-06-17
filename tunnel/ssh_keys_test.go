@@ -57,7 +57,7 @@ func Test_privatePasswordProtectedKeyFile(t *testing.T) {
 	}{
 		{"Valid OPENSSH priv key w/ password", filepath.Join("test-files", "test6.pem"), "test", false},
 		{"Valid OPENSSH priv key w/ wrong password", filepath.Join("test-files", "test6.pem"), "wrong pass", true},
-		{"Valid RSA priv key w/ password", filepath.Join("test-files", "test7.pem"), "test", false},
+		{"Valid RSA priv key w/ password", filepath.Join("test-files", "test7.pem"), "test1", false},
 		{"Valid RSA priv key w/ wrong password", filepath.Join("test-files", "test7.pem"), "wrong pass", true},
 	}
 	for _, tc := range cases {
