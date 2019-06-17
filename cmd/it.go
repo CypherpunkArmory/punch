@@ -161,6 +161,7 @@ func tunnelMultiple(confs []tunnelConf) {
 			LogLevel:           logLevel,
 		}
 	}
+	fmt.Println("Use Ctrl-c to close the tunnels")
 	var wg sync.WaitGroup
 	wg.Add(len(tunnelConfigs))
 	semaphore := tunnel.Semaphore{}

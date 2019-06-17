@@ -19,6 +19,7 @@
 package tunnel
 
 import (
+	"io/ioutil"
 	"path/filepath"
 	"testing"
 )
@@ -29,7 +30,8 @@ func Test_privateKeyFile(t *testing.T) {
 		path       string
 		shouldFail bool
 	}{
-		{"Valid priv key", filepath.Join("test-files", "test.pem"), false},
+		{"Valid RSA priv key", filepath.Join("test-files", "test.pem"), false},
+		{"Valid OPENSSH priv key", filepath.Join("test-files", "test5.pem"), false},
 		{"Invalid priv key", filepath.Join("test-files", "test2.pem"), true},
 		{"Incorrect path", filepath.Join("test-files", "test3.pem"), true},
 		{"Empty file", filepath.Join("test-files", "test4.pem"), true},
@@ -37,6 +39,31 @@ func Test_privateKeyFile(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			actual, _ := readPrivateKeyFile(tc.path)
+			if actual == nil && !tc.shouldFail {
+				t.Fatal("Failed")
+			}
+			if actual != nil && tc.shouldFail {
+				t.Fatal("Failed")
+			}
+		})
+	}
+}
+func Test_privatePasswordProtectedKeyFile(t *testing.T) {
+	cases := []struct {
+		name       string
+		path       string
+		password   string
+		shouldFail bool
+	}{
+		{"Valid OPENSSH priv key w/ password", filepath.Join("test-files", "test6.pem"), "test", false},
+		{"Valid OPENSSH priv key w/ wrong password", filepath.Join("test-files", "test6.pem"), "wrong pass", true},
+		{"Valid RSA priv key w/ password", filepath.Join("test-files", "test7.pem"), "test", false},
+		{"Valid RSA priv key w/ wrong password", filepath.Join("test-files", "test7.pem"), "wrong pass", true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			buffer, _ := ioutil.ReadFile(tc.path)
+			actual, _ := readPasswordProtectedKey(buffer, []byte(tc.password), tc.path)
 			if actual == nil && !tc.shouldFail {
 				t.Fatal("Failed")
 			}
