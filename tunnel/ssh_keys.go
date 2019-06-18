@@ -24,6 +24,7 @@ import (
 	"io/ioutil"
 	"syscall"
 
+	"github.com/ScaleFT/sshkeys"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
@@ -43,26 +44,42 @@ func readPrivateKeyFile(path string) (ssh.AuthMethod, error) {
 	if block == nil {
 		return nil, errors.New("bad key file")
 	}
-
 	// Return early if the SSH file is not password protected
-	if !x509.IsEncryptedPEMBlock(block) {
-		key, errParse := ssh.ParsePrivateKey(buffer)
-		if errParse != nil {
-			return nil, errors.New("cannot parse SSH key file " + path)
-		}
-		return ssh.PublicKeys(key), nil
+	if x509.IsEncryptedPEMBlock(block) {
+		return readEncryptedKey(buffer, path)
 	}
+	key, errParse := ssh.ParsePrivateKey(buffer)
+	if errParse != nil {
+		// IsEncryptedPEMBlock does not support checking OPENSSH keys
+		// This is a work around that is only needed for encrypted openssh keys
+		if block.Type == "OPENSSH PRIVATE KEY" {
+			return readEncryptedKey(buffer, path)
+		}
+		return nil, errors.New("cannot parse SSH key file " + path)
+	}
+	return ssh.PublicKeys(key), nil
+}
 
-	fmt.Println("Your password: ")
+func readEncryptedKey(buffer []byte, path string) (ssh.AuthMethod, error) {
+	fmt.Print("Your password: ")
 
 	bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return nil, errors.New("could not read your password " + err.Error())
 	}
-	key, err := ssh.ParsePrivateKeyWithPassphrase(buffer, bytePassword)
+	fmt.Println()
+	return readPasswordProtectedKey(buffer, bytePassword, path)
+}
+
+func readPasswordProtectedKey(buffer []byte, password []byte, path string) (ssh.AuthMethod, error) {
+	key, err := sshkeys.ParseEncryptedRawPrivateKey(buffer, password)
 	if err != nil {
+		fmt.Println(err.Error())
 		return nil, errors.New("cannot parse SSH key file " + path)
 	}
-
-	return ssh.PublicKeys(key), nil
+	keySigner, err := ssh.NewSignerFromKey(key)
+	if err != nil {
+		return nil, errors.New("cannot get signer from SSH key file " + path)
+	}
+	return ssh.PublicKeys(keySigner), nil
 }
