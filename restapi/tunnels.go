@@ -33,6 +33,7 @@ type Tunnel struct {
 	Port      []string   `jsonapi:"attr,port,omitempty"`
 	PublicKey string     `jsonapi:"attr,sshKey,omitempty"`
 	SSHPort   string     `jsonapi:"attr,sshPort,omitempty"`
+	TCPPorts  []string   `jsonapi:"attr,tcpPorts,omitempty"`
 	IPAddress string     `jsonapi:"attr,ipAddress,omitempty"`
 	Subdomain *Subdomain `jsonapi:"relation,subdomain,omitempty"`
 }

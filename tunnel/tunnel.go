@@ -79,9 +79,14 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 			os.Exit(0)
 		}
 	}()
+	if tunnelConfig.EndpointType == "tcp" {
+		fmt.Printf("Access your tcp endpoint at %s://tcp.%s:%s\n",
+			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tunnelConfig.TCPPorts[0])
+	} else {
+		fmt.Printf("Access your website at %s://%s.%s\n",
+			tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
+	}
 
-	fmt.Printf("Access your website at %s://%s.%s\n",
-		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
 	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
@@ -134,7 +139,9 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	if tunnelConfig.EndpointType == "https" {
 		remoteEndpointPort = "3001"
 	}
-
+	if tunnelConfig.EndpointType == "tcp" {
+		remoteEndpointPort = "3002"
+	}
 	var jumpServerEndpoint = Endpoint{
 		Host: tunnelConfig.ConnectionEndpoint.Hostname(),
 		Port: tunnelConfig.ConnectionEndpoint.Port(),

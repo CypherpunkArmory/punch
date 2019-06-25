@@ -17,6 +17,7 @@
 package cmd
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 
@@ -25,7 +26,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// tcpCmd represents the http command
+// tcpCmd represents the tcp command
 var tcpCmd = &cobra.Command{
 	Use:   "tcp <port>",
 	Short: "Expose a local tcp port you specify",
@@ -82,9 +83,11 @@ func tunnelTCP() {
 		PrivateKeyPath:     privateKeyPath,
 		EndpointURL:        *baseURL,
 		LocalPort:          port,
-		Subdomain:          "tcp",
+		Subdomain:          subdomain,
 		LogLevel:           logLevel,
+		TCPPorts:           response.TCPPorts,
 	}
+	fmt.Println("Use Ctrl-c to close the tunnel")
 	semaphore := tunnel.Semaphore{}
 	tunnel.StartReverseTunnel(&tunnelConfig, nil, &semaphore)
 }
