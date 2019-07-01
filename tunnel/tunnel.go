@@ -17,6 +17,7 @@
 package tunnel
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -42,6 +43,22 @@ const (
 	tunnelStarting string = "starting"
 )
 
+func internalEndpoint(endpointType string) (*Endpoint, error) {
+	if endpointType == "http" {
+		return &Endpoint{
+			Host: "localhost", // localhost here is the remote SSHD daemon container
+			Port: "3000",
+		}, nil
+	} else if endpointType == "https" {
+		return &Endpoint{
+			Host: "localhost", // localhost here is the remote SSHD daemon container
+			Port: "3001",
+		}, nil
+	} else {
+		return nil, errors.New("unknown Endpoint Type")
+	}
+}
+
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
 	defer cleanup(tunnelConfig)
@@ -49,13 +66,19 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	if wg != nil {
 		defer wg.Done()
 	}
-	listener, err := createTunnel(tunnelConfig, semaphore)
+	sClient, err := createTunnel(tunnelConfig, semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
 
-	defer listener.Close()
+	remoteEndpoint, err := internalEndpoint(tunnelConfig.EndpointType)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		return
+	}
+
+	defer sClient.Close()
 
 	var localEndpoint = Endpoint{
 		Host: "0.0.0.0",
@@ -73,6 +96,7 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	)
 
 	go func() {
+		log.Debugf("Closing Channel")
 		<-startCloseChannel
 		if semaphore.CanRun() {
 			cleanup(tunnelConfig)
@@ -83,19 +107,42 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 	fmt.Printf("Access your website at %s://%s.%s\n",
 		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
 	// handle incoming connections on reverse forwarded tunnel
+	var listener net.Listener
+	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
+	if err != nil {
+		fmt.Printf("%s", err.Error())
+	}
+
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		log.Debugf("Dial to local %s", localEndpoint.String())
-		client, errClient := listener.Accept()
-		remote, errRemote := net.Dial("tcp", localEndpoint.String())
-		if errRemote == nil && errClient == nil && client != nil && remote != nil {
-			go handleClient(client, remote)
+		log.Debugf("%+v", listener)
+		_, errInitialRemoteConnect := net.Dial("tcp", localEndpoint.String())
+		if errInitialRemoteConnect == nil {
+			fmt.Printf("connected\n")
+			client, errClient := listener.Accept()
+			remote, errRemote := net.Dial("tcp", localEndpoint.String())
+			if errRemote == nil && errClient == nil && client != nil && remote != nil {
+				// start goroutine
+				go handleClient(client, remote)
+			}
+		} else {
+			fmt.Printf("dis-connected\n")
+			log.Debugf("Err %s", errInitialRemoteConnect.Error())
+			listener.Close()
+			listener = nil // you can't close the underlying file descriptor on the connection
+			// so you need to let the listener be GC'ed by replacing it with a new object
+			log.Debugf("No local listener")
+			time.Sleep(1000 * time.Millisecond)
+			log.Debugf("Trying again")
+			listener, _ = sClient.Listen("tcp", remoteEndpoint.String())
 		}
+
 	}
 
 }
 
-func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, error) {
+func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (*ssh.Client, error) {
 	tunnelCreating := tunnelStatus{tunnelStarting}
 	createCloseChannel := make(chan os.Signal)
 	signal.Notify(createCloseChannel,
@@ -125,15 +172,8 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	log.SetLevel(lvl)
 	log.Debugf("Debug Logging activated")
 
-	var listener net.Listener
-
 	sshPort := tunnelConfig.TunnelEndpoint.SSHPort
 	// FIXME:  This should be a LUT
-	remoteEndpointPort := "3000"
-
-	if tunnelConfig.EndpointType == "https" {
-		remoteEndpointPort = "3001"
-	}
 
 	var jumpServerEndpoint = Endpoint{
 		Host: tunnelConfig.ConnectionEndpoint.Hostname(),
@@ -147,14 +187,10 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	}
 
 	// remote forwarding port (on remote SSH server network)
-	var remoteEndpoint = Endpoint{
-		Host: "localhost", // localhost here is the remote SSHD daemon container
-		Port: remoteEndpointPort,
-	}
 
 	privateKey, err := readPrivateKeyFile(tunnelConfig.PrivateKeyPath)
 	if err != nil {
-		return listener, err
+		return nil, err
 	}
 	hostKeyCallBack := dnsHostKeyCallback
 	if tunnelConfig.ConnectionEndpoint.Hostname() != "api.holepunch.io" {
@@ -176,7 +212,7 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error contacting the Holepunch Server.")
 		log.Debugf("%s", err)
-		return listener, err
+		return nil, err
 	}
 
 	tunnelStartingSpinner(semaphore, &tunnelCreating)
@@ -206,19 +242,12 @@ func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, err
 	}
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshTunnelConfig)
 	if err != nil {
-		return listener, err
+		return nil, err
 	}
 	log.Debugf("SSH Connection Established via Jump %s -> %s", jumpServerEndpoint.String(), serverEndpoint.String())
 
 	sClient := ssh.NewClient(ncc, chans, reqs)
-	// Listen on remote server port
-	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not open forwarding connection on remote server\n")
-		return listener, err
-	}
-	log.Debugf("Open listen port on %s", remoteEndpoint.String())
-	return listener, nil
+	return sClient, nil
 }
 
 func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *tunnelStatus) {
