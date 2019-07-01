@@ -80,7 +80,7 @@ var itCmd = &cobra.Command{
 func getTunnelConfig(input string) (tunnelConf, error) {
 	var output tunnelConf
 	allDigits := regexp.MustCompile("[0-9]+")
-	knownPorts := regexp.MustCompile("(http)|(https)")
+	knownPorts := regexp.MustCompile("(http)|(https)|(tcp)")
 
 	conf := strings.Split(input, ":")
 	if len(conf) != 2 {
@@ -159,6 +159,7 @@ func tunnelMultiple(confs []tunnelConf) {
 			LocalPort:          conf.port,
 			Subdomain:          subdomain,
 			LogLevel:           logLevel,
+			TCPPorts:           response.TCPPorts,
 		}
 	}
 	fmt.Println("Use Ctrl-c to close the tunnels")
