@@ -4,7 +4,7 @@ linters-settings:
   golint:
     min-confidence: 0.25
   gocyclo:
-    min-complexity: 12
+    min-complexity: 14
   maligned:
     suggest-new: true
   dupl:

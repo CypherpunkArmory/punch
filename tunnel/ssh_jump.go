@@ -27,22 +27,23 @@ const (
 )
 
 func internalEndpoint(endpointType string) (*Endpoint, error) {
-	if endpointType == "http" {
+	switch endpointType {
+	case "http":
 		return &Endpoint{
 			Host: "localhost", // localhost here is the remote SSHD daemon container
 			Port: "3000",
 		}, nil
-	} else if endpointType == "https" {
+	case "https":
 		return &Endpoint{
 			Host: "localhost", // localhost here is the remote SSHD daemon container
 			Port: "3001",
 		}, nil
-	} else if endpointType == "tcp" {
+	case "tcp":
 		return &Endpoint{
 			Host: "localhost", // localhost here is the remote SSHD daemon container
 			Port: "3002",
 		}, nil
-	} else {
+	default:
 		return nil, errors.New("unknown Endpoint Type")
 	}
 }
