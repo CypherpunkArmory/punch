@@ -38,7 +38,7 @@ func StartReverseTunnel(tunnelConfig ...Config) {
 		fmt.Fprintf(os.Stderr, "We could not connect to the jump host")
 		cleanup(&tunnelConfig[0])
 	}
-	for i, _ := range tunnelConfig {
+	for i := range tunnelConfig {
 		go startReverseTunnel(jumpConn, &tunnelConfig[i], &wg, &semaphore)
 	}
 	wg.Wait()
