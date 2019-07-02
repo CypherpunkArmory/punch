@@ -23,6 +23,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -51,13 +52,17 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 	if wg != nil {
 		defer wg.Done()
 	}
-	listener, err := createTunnel(jumpConn, tunnelConfig, semaphore)
+	sClient, err := createTunnel(jumpConn, tunnelConfig, semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
-
-	defer listener.Close()
+	remoteEndpoint, err := internalEndpoint(tunnelConfig.EndpointType)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		return
+	}
+	defer sClient.Close()
 
 	var localEndpoint = Endpoint{
 		Host: "0.0.0.0",
@@ -81,23 +86,43 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 			os.Exit(0)
 		}
 	}()
+	var outputString string
 	if tunnelConfig.EndpointType == "tcp" {
-		fmt.Printf("Access your tcp endpoint at %s://tcp.%s:%s\n",
+		outputString = fmt.Sprintf("Access your tcp endpoint at %s://tcp.%s:%s",
 			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tunnelConfig.TCPPorts[0])
 	} else {
-		fmt.Printf("Access your website at %s://%s.%s\n",
+		outputString = fmt.Sprintf("Access your website at %s://%s.%s",
 			tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
 	}
+	fmt.Println(outputString)
+	var listener net.Listener
+	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
+	if err != nil {
+		fmt.Printf("%s", err.Error())
+	}
 
-	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		log.Debugf("Dial to local %s", localEndpoint.String())
-		client, errClient := listener.Accept()
-		remote, errRemote := net.Dial("tcp", localEndpoint.String())
-		if errRemote == nil && errClient == nil && client != nil && remote != nil {
-			go handleClient(client, remote)
+		_, errInitialRemoteConnect := net.Dial("tcp", localEndpoint.String())
+		if errInitialRemoteConnect == nil {
+			client, errClient := listener.Accept()
+			remote, errRemote := net.Dial("tcp", localEndpoint.String())
+			if errRemote == nil && errClient == nil && client != nil && remote != nil {
+				// start goroutine
+				go handleClient(client, remote)
+			}
+		} else {
+			log.Debugf("Err %s", errInitialRemoteConnect.Error())
+			listener.Close()
+			listener = nil // you can't close the underlying file descriptor on the connection
+			// so you need to let the listener be GC'ed by replacing it with a new object
+			log.Debugf("No local listener")
+			time.Sleep(1000 * time.Millisecond)
+			log.Debugf("Trying again")
+			listener, _ = sClient.Listen("tcp", remoteEndpoint.String())
 		}
+
 	}
 
 }

@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -24,6 +25,27 @@ const (
 	tunnelDone     string = "done"
 	tunnelStarting string = "starting"
 )
+
+func internalEndpoint(endpointType string) (*Endpoint, error) {
+	if endpointType == "http" {
+		return &Endpoint{
+			Host: "localhost", // localhost here is the remote SSHD daemon container
+			Port: "3000",
+		}, nil
+	} else if endpointType == "https" {
+		return &Endpoint{
+			Host: "localhost", // localhost here is the remote SSHD daemon container
+			Port: "3001",
+		}, nil
+	} else if endpointType == "tcp" {
+		return &Endpoint{
+			Host: "localhost", // localhost here is the remote SSHD daemon container
+			Port: "3002",
+		}, nil
+	} else {
+		return nil, errors.New("unknown Endpoint Type")
+	}
+}
 
 func connectToJumpHost(tunnelConfig *Config, semaphore *Semaphore) (*ssh.Client, error) {
 	tunnelCreating := tunnelStatus{tunnelStarting}
@@ -86,7 +108,7 @@ func connectToJumpHost(tunnelConfig *Config, semaphore *Semaphore) (*ssh.Client,
 	return jumpConn, nil
 }
 
-func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semaphore) (net.Listener, error) {
+func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semaphore) (*ssh.Client, error) {
 	tunnelCreating := tunnelStatus{tunnelStarting}
 	createCloseChannel := make(chan os.Signal)
 	signal.Notify(createCloseChannel,
@@ -116,18 +138,8 @@ func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semapho
 	log.SetLevel(lvl)
 	log.Debugf("Debug Logging activated")
 
-	var listener net.Listener
-
 	sshPort := tunnelConfig.TunnelEndpoint.SSHPort
 	// FIXME:  This should be a LUT
-	remoteEndpointPort := "3000"
-
-	if tunnelConfig.EndpointType == "https" {
-		remoteEndpointPort = "3001"
-	}
-	if tunnelConfig.EndpointType == "tcp" {
-		remoteEndpointPort = "3002"
-	}
 
 	// remote SSH server
 	var serverEndpoint = Endpoint{
@@ -136,14 +148,10 @@ func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semapho
 	}
 
 	// remote forwarding port (on remote SSH server network)
-	var remoteEndpoint = Endpoint{
-		Host: "localhost", // localhost here is the remote SSHD daemon container
-		Port: remoteEndpointPort,
-	}
 
 	privateKey, err := readPrivateKeyFile(tunnelConfig.PrivateKeyPath)
 	if err != nil {
-		return listener, err
+		return nil, err
 	}
 
 	tunnelStartingSpinner(semaphore, &tunnelCreating)
@@ -173,19 +181,12 @@ func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semapho
 	}
 	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshTunnelConfig)
 	if err != nil {
-		return listener, err
+		return nil, err
 	}
 	log.Debugf("SSH Connection Established via Jump %s", serverEndpoint.String())
 
 	sClient := ssh.NewClient(ncc, chans, reqs)
-	// Listen on remote server port
-	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not open forwarding connection on remote server\n")
-		return listener, err
-	}
-	log.Debugf("Open listen port on %s", remoteEndpoint.String())
-	return listener, nil
+	return sClient, nil
 }
 
 func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *tunnelStatus) {
