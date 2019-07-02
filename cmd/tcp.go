@@ -17,7 +17,6 @@
 package cmd
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 
@@ -87,7 +86,5 @@ func tunnelTCP() {
 		LogLevel:           logLevel,
 		TCPPorts:           response.TCPPorts,
 	}
-	fmt.Println("Use Ctrl-c to close the tunnel")
-	semaphore := tunnel.Semaphore{}
-	tunnel.StartReverseTunnel(&tunnelConfig, nil, &semaphore)
+	tunnel.StartReverseTunnel(tunnelConfig)
 }

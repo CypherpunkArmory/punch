@@ -23,7 +23,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"sync"
 
 	"github.com/cypherpunkarmory/punch/tunnel"
 	"github.com/reiver/go-telnet"
@@ -162,12 +161,5 @@ func tunnelMultiple(confs []tunnelConf) {
 			TCPPorts:           response.TCPPorts,
 		}
 	}
-	fmt.Println("Use Ctrl-c to close the tunnels")
-	var wg sync.WaitGroup
-	wg.Add(len(tunnelConfigs))
-	semaphore := tunnel.Semaphore{}
-	for i := 0; i < len(tunnelConfigs); i++ {
-		go tunnel.StartReverseTunnel(&tunnelConfigs[i], &wg, &semaphore)
-	}
-	wg.Wait()
+	tunnel.StartReverseTunnel(tunnelConfigs...)
 }
