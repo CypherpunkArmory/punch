@@ -29,6 +29,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+//StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig ...Config) {
 	fmt.Println("Use Ctrl-c to close the tunnels")
 	semaphore := Semaphore{}
@@ -45,7 +46,6 @@ func StartReverseTunnel(tunnelConfig ...Config) {
 	wg.Wait()
 }
 
-//StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
 	defer cleanup(tunnelConfig)
 
