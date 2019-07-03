@@ -123,7 +123,7 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 			listener, err = sClient.Listen("tcp", remoteEndpoint.String())
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error connecting to local host")
-				os.Exit(2)
+				startCloseChannel <- syscall.SIGINT
 			}
 		}
 
