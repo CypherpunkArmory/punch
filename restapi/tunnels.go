@@ -30,7 +30,7 @@ import (
 //Tunnel JSONAPI response of tunnel object
 type Tunnel struct {
 	ID        string     `jsonapi:"primary,tunnel"`
-	Port      []string   `jsonapi:"attr,port,omitempty"`
+	PortTypes []string   `jsonapi:"attr,port,omitempty"`
 	PublicKey string     `jsonapi:"attr,sshKey,omitempty"`
 	SSHPort   string     `jsonapi:"attr,sshPort,omitempty"`
 	TCPPorts  []string   `jsonapi:"attr,tcpPorts,omitempty"`
@@ -82,7 +82,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 			return tunnelReturn, errorUnownedSubdomain
 		}
 		request := Tunnel{
-			Port:      protocol,
+			PortTypes: protocol,
 			PublicKey: publicKey,
 			Subdomain: &Subdomain{
 				ID: subdomainID,
@@ -95,7 +95,7 @@ func (restClient *RestClient) CreateTunnelAPI(subdomain string, publicKey string
 		}
 	} else {
 		request := Tunnel{
-			Port:      protocol,
+			PortTypes: protocol,
 			PublicKey: publicKey,
 		}
 

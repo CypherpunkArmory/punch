@@ -140,7 +140,6 @@ func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semapho
 	log.Debugf("Debug Logging activated")
 
 	sshPort := tunnelConfig.TunnelEndpoint.SSHPort
-	// FIXME:  This should be a LUT
 
 	// remote SSH server
 	var serverEndpoint = Endpoint{

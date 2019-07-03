@@ -88,7 +88,7 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 	}()
 	var outputString string
 	if tunnelConfig.EndpointType == "tcp" {
-		outputString = fmt.Sprintf("Access your tcp endpoint at %s://tcp.%s:%s",
+		outputString = fmt.Sprintf("Access your service at %s://tcp.%s:%s",
 			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tunnelConfig.TCPPorts[0])
 	} else {
 		outputString = fmt.Sprintf("Access your website at %s://%s.%s",
@@ -120,7 +120,11 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 			log.Debugf("No local listener")
 			time.Sleep(1000 * time.Millisecond)
 			log.Debugf("Trying again")
-			listener, _ = sClient.Listen("tcp", remoteEndpoint.String())
+			listener, err = sClient.Listen("tcp", remoteEndpoint.String())
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error connecting to local host")
+				os.Exit(2)
+			}
 		}
 
 	}
