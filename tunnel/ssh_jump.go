@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -26,6 +27,9 @@ const (
 	tunnelStarting string = "starting"
 )
 
+var tcpPort = 3001
+var mux = sync.Mutex{}
+
 func internalEndpoint(endpointType string) (*Endpoint, error) {
 	switch endpointType {
 	case "http":
@@ -39,9 +43,12 @@ func internalEndpoint(endpointType string) (*Endpoint, error) {
 			Port: "3001",
 		}, nil
 	case "tcp":
+		mux.Lock()
+		tcpPort = tcpPort + 1
+		mux.Unlock()
 		return &Endpoint{
 			Host: "localhost", // localhost here is the remote SSHD daemon container
-			Port: "3002",
+			Port: string(tcpPort),
 		}, nil
 	default:
 		return nil, errors.New("unknown Endpoint Type")
