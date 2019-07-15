@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -48,7 +49,7 @@ func internalEndpoint(endpointType string) (*Endpoint, error) {
 		mux.Unlock()
 		return &Endpoint{
 			Host: "localhost", // localhost here is the remote SSHD daemon container
-			Port: string(tcpPort),
+			Port: strconv.Itoa(tcpPort),
 		}, nil
 	default:
 		return nil, errors.New("unknown Endpoint Type")
