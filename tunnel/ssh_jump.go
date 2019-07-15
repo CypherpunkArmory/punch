@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"github.com/cypherpunkarmory/punch/backoff"
-	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
-	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -187,23 +185,4 @@ func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semapho
 
 	sClient := ssh.NewClient(ncc, chans, reqs)
 	return sClient, nil
-}
-
-func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *tunnelStatus) {
-	go func() {
-		if !lock.CanRun() {
-			return
-		}
-		defer lock.Done()
-		s := spin.New()
-		for tunnelStatus.state == tunnelStarting {
-			fmt.Printf("\rStarting tunnel %s ", s.Next())
-			time.Sleep(100 * time.Millisecond)
-		}
-		if tunnelStatus.state == tunnelDone {
-			fmt.Printf("\rStarting tunnel ")
-			d := color.New(color.FgGreen, color.Bold)
-			d.Printf("✔\n")
-		}
-	}()
 }

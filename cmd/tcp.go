@@ -85,6 +85,7 @@ func tunnelTCP() {
 		Subdomain:          subdomain,
 		LogLevel:           logLevel,
 		TCPPorts:           response.TCPPorts,
+		ConnectionUp:       false,
 	}
 	tunnel.StartReverseTunnel(tunnelConfig)
 }

@@ -32,26 +32,44 @@ import (
 //StartReverseTunnel Main tunneling function. Handles connections and forwarding
 func StartReverseTunnel(tunnelConfig ...Config) {
 	fmt.Println("Use Ctrl-c to close the tunnels")
+
+	// This waitgroup is to wait for the connection to the made ssh box to be complete
+	// We use this to know when to start printing the tunnel status
+	connectionComplete := sync.WaitGroup{}
+	connectionComplete.Add(len(tunnelConfig))
+
 	semaphore := Semaphore{}
+
+	// This waitgroup is to prevent this function from prematuring ending before closing ctrl-c tunnels
 	wg := sync.WaitGroup{}
 	wg.Add(len(tunnelConfig))
+
 	jumpConn, err := connectToJumpHost(&tunnelConfig[0], &semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "We could not connect to the jump host")
 		cleanup(&tunnelConfig[0])
 	}
 	for i := range tunnelConfig {
-		go startReverseTunnel(jumpConn, &tunnelConfig[i], &wg, &semaphore)
+		go startReverseTunnel(jumpConn, &tunnelConfig[i], &wg, &semaphore, &connectionComplete)
 	}
+	printConfigs := make([]outputConfig, len(tunnelConfig))
+	for i := range tunnelConfig {
+		printConfigs[i] = outputConfig{
+			connectionConfig: &tunnelConfig[i],
+			ConnectionUp:     tunnelConfig[i].ConnectionUp,
+		}
+	}
+	if tunnelConfig[0].LogLevel == "ERROR" {
+		go printConnections(printConfigs, &connectionComplete)
+	}
+
 	wg.Wait()
 }
 
-func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
+func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore, connectionComplete *sync.WaitGroup) {
 	defer cleanup(tunnelConfig)
+	defer wg.Done()
 
-	if wg != nil {
-		defer wg.Done()
-	}
 	sClient, err := createTunnel(jumpConn, tunnelConfig, semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
@@ -86,26 +104,19 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 			os.Exit(0)
 		}
 	}()
-	var outputString string
-	if tunnelConfig.EndpointType == "tcp" {
-		outputString = fmt.Sprintf("Access your service at %s://tcp.%s:%s",
-			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tunnelConfig.TCPPorts[0])
-	} else {
-		outputString = fmt.Sprintf("Access your website at %s://%s.%s",
-			tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
-	}
-	fmt.Println(outputString)
+
 	var listener net.Listener
 	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
 	if err != nil {
 		fmt.Printf("%s", err.Error())
 	}
-
+	connectionComplete.Done()
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		log.Debugf("Dial to local %s", localEndpoint.String())
 		_, errInitialRemoteConnect := net.Dial("tcp", localEndpoint.String())
 		if errInitialRemoteConnect == nil {
+			tunnelConfig.ConnectionUp = true
 			client, errClient := listener.Accept()
 			remote, errRemote := net.Dial("tcp", localEndpoint.String())
 			if errRemote == nil && errClient == nil && client != nil && remote != nil {
@@ -113,6 +124,7 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 				go handleClient(client, remote)
 			}
 		} else {
+			tunnelConfig.ConnectionUp = false
 			log.Debugf("Err %s", errInitialRemoteConnect.Error())
 			listener.Close()
 			listener = nil // you can't close the underlying file descriptor on the connection

@@ -159,6 +159,7 @@ func tunnelMultiple(confs []tunnelConf) {
 			Subdomain:          subdomain,
 			LogLevel:           logLevel,
 			TCPPorts:           response.TCPPorts,
+			ConnectionUp:       false,
 		}
 	}
 	tunnel.StartReverseTunnel(tunnelConfigs...)

@@ -35,6 +35,7 @@ type Config struct {
 	EndpointURL        url.URL
 	LogLevel           string
 	TCPPorts           []string
+	ConnectionUp       bool
 }
 
 type Endpoint struct {
