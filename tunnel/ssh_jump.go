@@ -44,7 +44,7 @@ func internalEndpoint(endpointType string) (*Endpoint, error) {
 		}, nil
 	case "tcp":
 		mux.Lock()
-		tcpPort = tcpPort + 1
+		tcpPort++
 		mux.Unlock()
 		return &Endpoint{
 			Host: "localhost", // localhost here is the remote SSHD daemon container
