@@ -25,37 +25,44 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/cypherpunkarmory/punch/backoff"
-	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
-	"github.com/tj/go-spin"
 	"golang.org/x/crypto/ssh"
 )
 
-type tunnelStatus struct {
-	state string
+//StartReverseTunnel Main tunneling function. Handles connections and forwarding
+func StartReverseTunnel(tunnelConfig ...Config) {
+	fmt.Println("Use Ctrl-c to close the tunnels")
+	semaphore := Semaphore{}
+	wg := sync.WaitGroup{}
+	wg.Add(len(tunnelConfig))
+	jumpConn, err := connectToJumpHost(&tunnelConfig[0], &semaphore)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "We could not connect to the jump host")
+		cleanup(&tunnelConfig[0])
+	}
+	for i := range tunnelConfig {
+		go startReverseTunnel(jumpConn, &tunnelConfig[i], &wg, &semaphore, tunnelConfig[i].TCPPorts[i])
+	}
+	wg.Wait()
 }
 
-const (
-	tunnelError    string = "error"
-	tunnelDone     string = "done"
-	tunnelStarting string = "starting"
-)
-
-//StartReverseTunnel Main tunneling function. Handles connections and forwarding
-func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
+func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore, tcpPort string) {
 	defer cleanup(tunnelConfig)
 
 	if wg != nil {
 		defer wg.Done()
 	}
-	listener, err := createTunnel(tunnelConfig, semaphore)
+	sClient, err := createTunnel(jumpConn, tunnelConfig, semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		return
 	}
-
-	defer listener.Close()
+	remoteEndpoint, err := internalEndpoint(tunnelConfig.EndpointType)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		return
+	}
+	defer sClient.Close()
 
 	var localEndpoint = Endpoint{
 		Host: "0.0.0.0",
@@ -79,165 +86,49 @@ func StartReverseTunnel(tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Sem
 			os.Exit(0)
 		}
 	}()
+	var outputString string
+	if tunnelConfig.EndpointType == "tcp" {
+		outputString = fmt.Sprintf("Forwarding port %s to %s://tcp.%s:%s",
+			tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tcpPort)
+	} else {
+		outputString = fmt.Sprintf("Access your website at %s://%s.%s",
+			tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
+	}
+	fmt.Println(outputString)
+	var listener net.Listener
+	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
+	if err != nil {
+		fmt.Printf("%s", err.Error())
+	}
 
-	fmt.Printf("Access your website at %s://%s.%s\n",
-		tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
-	// handle incoming connections on reverse forwarded tunnel
 	for {
 		// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
 		log.Debugf("Dial to local %s", localEndpoint.String())
-		client, errClient := listener.Accept()
-		remote, errRemote := net.Dial("tcp", localEndpoint.String())
-		if errRemote == nil && errClient == nil && client != nil && remote != nil {
-			go handleClient(client, remote)
+		_, errInitialRemoteConnect := net.Dial("tcp", localEndpoint.String())
+		if errInitialRemoteConnect == nil {
+			client, errClient := listener.Accept()
+			remote, errRemote := net.Dial("tcp", localEndpoint.String())
+			if errRemote == nil && errClient == nil && client != nil && remote != nil {
+				// start goroutine
+				go handleClient(client, remote)
+			}
+		} else {
+			log.Debugf("Err %s", errInitialRemoteConnect.Error())
+			listener.Close()
+			listener = nil // you can't close the underlying file descriptor on the connection
+			// so you need to let the listener be GC'ed by replacing it with a new object
+			log.Debugf("No local listener")
+			time.Sleep(1000 * time.Millisecond)
+			log.Debugf("Trying again")
+			listener, err = sClient.Listen("tcp", remoteEndpoint.String())
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error connecting to local host")
+				startCloseChannel <- syscall.SIGINT
+			}
 		}
+
 	}
 
-}
-
-func createTunnel(tunnelConfig *Config, semaphore *Semaphore) (net.Listener, error) {
-	tunnelCreating := tunnelStatus{tunnelStarting}
-	createCloseChannel := make(chan os.Signal)
-	signal.Notify(createCloseChannel,
-		// https://www.gnu.org/software/libc/manual/html_node/Termination-Signals.html
-		syscall.SIGTERM, // "the normal way to politely ask a program to terminate"
-		syscall.SIGINT,  // Ctrl+C
-		syscall.SIGQUIT, // Ctrl-\
-		syscall.SIGHUP,  // "terminal is disconnected"
-	)
-	defer signal.Stop(createCloseChannel)
-	go func() {
-		<-createCloseChannel
-		log.Debugf("Closing tunnel")
-		tunnelCreating.state = tunnelError
-		for !semaphore.CanRun() {
-
-		}
-		defer semaphore.Done()
-		cleanup(tunnelConfig)
-		os.Exit(0)
-	}()
-	lvl, err := log.ParseLevel(tunnelConfig.LogLevel)
-	if err != nil {
-		log.Errorf("\nLog level %s is not a valid level.", tunnelConfig.LogLevel)
-	}
-
-	log.SetLevel(lvl)
-	log.Debugf("Debug Logging activated")
-
-	var listener net.Listener
-
-	sshPort := tunnelConfig.TunnelEndpoint.SSHPort
-	// FIXME:  This should be a LUT
-	remoteEndpointPort := "3000"
-
-	if tunnelConfig.EndpointType == "https" {
-		remoteEndpointPort = "3001"
-	}
-
-	var jumpServerEndpoint = Endpoint{
-		Host: tunnelConfig.ConnectionEndpoint.Hostname(),
-		Port: tunnelConfig.ConnectionEndpoint.Port(),
-	}
-
-	// remote SSH server
-	var serverEndpoint = Endpoint{
-		Host: tunnelConfig.TunnelEndpoint.IPAddress,
-		Port: sshPort,
-	}
-
-	// remote forwarding port (on remote SSH server network)
-	var remoteEndpoint = Endpoint{
-		Host: "localhost", // localhost here is the remote SSHD daemon container
-		Port: remoteEndpointPort,
-	}
-
-	privateKey, err := readPrivateKeyFile(tunnelConfig.PrivateKeyPath)
-	if err != nil {
-		return listener, err
-	}
-	hostKeyCallBack := dnsHostKeyCallback
-	if tunnelConfig.ConnectionEndpoint.Hostname() != "api.holepunch.io" {
-		fmt.Println("Ignoring hostkey")
-		hostKeyCallBack = ssh.InsecureIgnoreHostKey()
-	}
-	sshJumpConfig := &ssh.ClientConfig{
-		User: "punch",
-		Auth: []ssh.AuthMethod{
-			ssh.Password(""),
-		},
-		HostKeyCallback: hostKeyCallBack,
-		Timeout:         0,
-	}
-
-	log.Debugf("Dial into Jump Server %s", jumpServerEndpoint.String())
-	jumpConn, err := ssh.Dial("tcp", jumpServerEndpoint.String(), sshJumpConfig)
-
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error contacting the Holepunch Server.")
-		log.Debugf("%s", err)
-		return listener, err
-	}
-
-	tunnelStartingSpinner(semaphore, &tunnelCreating)
-	exponentialBackoff := backoff.NewExponentialBackOff()
-
-	// Connect to SSH remote server using serverEndpoint
-	var serverConn net.Conn
-	for {
-		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
-		log.Debugf("Dial into SSHD Container %s", serverEndpoint.String())
-		if err == nil {
-			tunnelCreating.state = tunnelDone
-			break
-		}
-		wait := exponentialBackoff.NextBackOff()
-		log.Debugf("Backoff Tick %s", wait.String())
-		time.Sleep(wait)
-	}
-	sshTunnelConfig := &ssh.ClientConfig{
-		User: "punch",
-		Auth: []ssh.AuthMethod{
-			privateKey,
-		},
-		//TODO: Maybe fix this. Will be rotating so dont know if possible
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         0,
-	}
-	ncc, chans, reqs, err := ssh.NewClientConn(serverConn, serverEndpoint.String(), sshTunnelConfig)
-	if err != nil {
-		return listener, err
-	}
-	log.Debugf("SSH Connection Established via Jump %s -> %s", jumpServerEndpoint.String(), serverEndpoint.String())
-
-	sClient := ssh.NewClient(ncc, chans, reqs)
-	// Listen on remote server port
-	listener, err = sClient.Listen("tcp", remoteEndpoint.String())
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not open forwarding connection on remote server\n")
-		return listener, err
-	}
-	log.Debugf("Open listen port on %s", remoteEndpoint.String())
-	return listener, nil
-}
-
-func tunnelStartingSpinner(lock *Semaphore, tunnelStatus *tunnelStatus) {
-	go func() {
-		if !lock.CanRun() {
-			return
-		}
-		defer lock.Done()
-		s := spin.New()
-		for tunnelStatus.state == tunnelStarting {
-			fmt.Printf("\rStarting tunnel %s ", s.Next())
-			time.Sleep(100 * time.Millisecond)
-		}
-		if tunnelStatus.state == tunnelDone {
-			fmt.Printf("\rStarting tunnel ")
-			d := color.New(color.FgGreen, color.Bold)
-			d.Printf("✔\n")
-		}
-	}()
 }
 func cleanup(config *Config) {
 	fmt.Println("\nClosing tunnel")

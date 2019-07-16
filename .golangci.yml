@@ -2,16 +2,16 @@ linters-settings:
   govet:
     check-shadowing: true
   golint:
-    min-confidence: 0.5
+    min-confidence: 0.25
   gocyclo:
     min-complexity: 14
   maligned:
     suggest-new: true
   dupl:
-    threshold: 200
+    threshold: 150
   goconst:
     min-len: 2
-    min-occurrences: 2
+    min-occurrences: 3
   misspell:
     locale: US
   lll:
@@ -20,14 +20,12 @@ linters-settings:
     local-prefixes: github.com/Cypherpunkarmory/punch
   gocritic:
     enabled-tags:
-      - performance
       - style
       - experimental
+      - diagnostic
     disabled-checks:
-      - wrapperFunc
       - commentFormatting
       - paramTypeCombine
-      - regexpMust
 
 linters:
   enable-all: true
@@ -39,6 +37,9 @@ linters:
 
 issues:
   exclude-rules:
+    - path: "restapi/"
+      linters:
+        - dupl
     - path: "cmd/"
       linters:
         - dupl
@@ -46,10 +47,7 @@ issues:
       text: "(viper.|MarkFlag|telnet)"
       linters:
         - errcheck
-    - path: tunnel/tunnel.go
-      text: "InsecureIgnoreHostKey"
-      linters:
-        - gosec
+
 run:
   skip-dirs:
     - cmd/test

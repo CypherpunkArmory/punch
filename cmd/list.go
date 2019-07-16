@@ -79,6 +79,6 @@ func printTunnels(response []restapi.Tunnel) {
 	fmt.Fprintf(writer, "%s\t%s\t%s\t\n", "--------------", "--------", "------")
 	for _, elem := range response {
 		subdomainName, _ := restAPI.GetSubdomainName(elem.Subdomain.ID)
-		fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t\n", subdomainName, elem.Port, elem.SSHPort, elem.IPAddress)
+		fmt.Fprintf(writer, "%s\t%s\t%s\t%s\t\n", subdomainName, elem.PortTypes, elem.SSHPort, elem.IPAddress)
 	}
 }

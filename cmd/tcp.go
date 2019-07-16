@@ -25,39 +25,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// httpCmd represents the http command
-var httpCmd = &cobra.Command{
-	Use:   "http <port> [subdomain]",
-	Short: "Expose a local web server on the port you specify",
-	Long: "Expose a local web server on the port you specify.\n" +
-		"Example: `punch http 8080` will expose a local web server running on port 8080.\n" +
-		"You can provide an optional 2nd argument to specify the name of a reserved subdomain you want to\n" +
-		"associate this with.\n" +
-		"Example: `punch http 8080 mydomain` will expose a local web server running on port 8080 via\n" +
-		"         \"http://mydomain.holepunch.io\".\n" +
-		"Otherwise it will default to using a new unreserved subdomain.",
-	Args: cobra.RangeArgs(1, 2),
+// tcpCmd represents the tcp command
+var tcpCmd = &cobra.Command{
+	Use:   "tcp <port>",
+	Short: "Expose a local tcp server running on the port you specify",
+	Long: "Expose a local tcp server running on the port you specify.\n" +
+		"Note: punch will return to you the URL and port where your server is publically exposed.\n" +
+		" This will look something like tcp://tcp.holepunch.io:12345\n" +
+		" It could then be accessed with something like `telnet tcp.holepunch.io 12345`\n" +
+		"Example: `punch tcp 2000` will expose a local tcp server running on port 2000.",
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
-		if len(args) == 2 {
-			subdomain = args[1]
-		}
 		port = args[0]
 		if err != nil {
 			reportError("Must supply a port to forward", true)
 		}
-		tunnelHTTP()
+		tunnelTCP()
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(httpCmd)
+	rootCmd.AddCommand(tcpCmd)
 }
 
-func tunnelHTTP() {
-	if subdomain != "" && !correctSubdomainRegex(subdomain) {
-		reportError("Invalid Subdomain", true)
-	}
+func tunnelTCP() {
 	if !checkPort(port) {
 		reportError("Port is not in range[1-65535]", true)
 	}
@@ -67,15 +59,11 @@ func tunnelHTTP() {
 		os.Exit(3)
 	}
 
-	protocol := []string{"http"}
-	response, err := restAPI.CreateTunnelAPI(subdomain, publicKey, protocol)
+	protocol := []string{"tcp"}
+	response, err := restAPI.CreateTunnelAPI("", publicKey, protocol)
 
 	if err != nil {
 		reportError(err.Error(), true)
-	}
-
-	if subdomain == "" {
-		subdomain, _ = restAPI.GetSubdomainName(response.Subdomain.ID)
 	}
 
 	connectionURL, err := url.Parse(sshEndpoint)
@@ -93,12 +81,13 @@ func tunnelHTTP() {
 		ConnectionEndpoint: *connectionURL,
 		RestAPI:            restAPI,
 		TunnelEndpoint:     response,
-		EndpointType:       "http",
+		EndpointType:       "tcp",
 		PrivateKeyPath:     privateKeyPath,
 		EndpointURL:        *baseURL,
 		LocalPort:          port,
 		Subdomain:          subdomain,
 		LogLevel:           logLevel,
+		TCPPorts:           response.TCPPorts,
 	}
 	tunnel.StartReverseTunnel(tunnelConfig)
 }

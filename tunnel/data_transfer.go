@@ -38,6 +38,7 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 
 	select {
 	case firstError := <-errorCh:
+		log.Debug("Error on Client Channel")
 		log.Debugf(firstError.Error())
 	default:
 		return
@@ -47,13 +48,14 @@ func handleClient(client io.ReadWriteCloser, remote io.ReadWriteCloser) {
 func copyData(dst io.WriteCloser, dstName string, src io.ReadCloser, srcName string, done *sync.WaitGroup, errorCh chan error) {
 	defer done.Done()
 	amt, err := io.Copy(dst, src)
-	if err != nil {
+	if err != nil && amt != 0 {
 		errorCh <- fmt.Errorf(
 			"%s -> %s error: %s",
 			srcName,
 			dstName,
 			err.Error())
 	}
+
 	log.Debugf("%s <- %s (%d bytes)", dstName, srcName, amt)
 	src.Close()
 	dst.Close()

@@ -17,7 +17,6 @@
 package cmd
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 
@@ -98,7 +97,5 @@ func tunnelHTTPS() {
 		Subdomain:          subdomain,
 		LogLevel:           logLevel,
 	}
-	fmt.Println("Use Ctrl-c to close the tunnel")
-	semaphore := tunnel.Semaphore{}
-	tunnel.StartReverseTunnel(&tunnelConfig, nil, &semaphore)
+	tunnel.StartReverseTunnel(tunnelConfig)
 }
