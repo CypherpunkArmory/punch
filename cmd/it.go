@@ -42,7 +42,7 @@ var itCmd = &cobra.Command{
 	Use:   "it <type:port>... [subdomain]",
 	Short: "Expose local servers running on the ports you specify",
 	Long: "Expose local servers running on the ports you specify.\n" +
-	"Example: `punch it http:8080 https:8443 tcp:2000` will expose a local web server running on port 8080,\n" +
+		"Example: `punch it http:8080 https:8443 tcp:2000` will expose a local web server running on port 8080,\n" +
 		"          an https web server running on port 8443 and a tcp server running on port 2000.\n" +
 		"You can provide an optional argument to specify the name of a reserved subdomain you want to\n" +
 		"associate this with.\n" +
