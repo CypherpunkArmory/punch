@@ -88,8 +88,8 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 	}()
 	var outputString string
 	if tunnelConfig.EndpointType == "tcp" {
-		outputString = fmt.Sprintf("Access your service at %s://tcp.%s:%s",
-			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tcpPort)
+		outputString = fmt.Sprintf("Forwarding port %s to %s://tcp.%s:%s",
+			tunnelConfig.LocalPort, tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tcpPort)
 	} else {
 		outputString = fmt.Sprintf("Access your website at %s://%s.%s",
 			tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
