@@ -40,16 +40,18 @@ func (tc *tunnelConf) String() string {
 
 var itCmd = &cobra.Command{
 	Use:   "it <type:port>... [subdomain]",
-	Short: "Expose a local web server on the ports you specify",
-	Long: "Expose a local web server on the ports you specify.\n" +
-		"Example: `punch it http:8080 https:8443` will expose a local web server running on port 8080 and\n" +
-		"          an https web server running on port 8443.\n" +
+	Short: "Expose local servers running on the ports you specify",
+	Long: "Expose local servers running on the ports you specify.\n" +
+	"Example: `punch it http:8080 https:8443 tcp:2000` will expose a local web server running on port 8080,\n" +
+		"          an https web server running on port 8443 and a tcp server running on port 2000.\n" +
 		"You can provide an optional argument to specify the name of a reserved subdomain you want to\n" +
 		"associate this with.\n" +
 		"Example: `punch it http:8080 https:8443 mydomain` will expose a local web server running on port 8080\n" +
 		"          via \"http://mydomain.holepunch.io\" and an https web server running on port 8443 via\n" +
 		"          \"https://mydomain.holepunch.io\".\n" +
-		"Otherwise it will default to using a new unreserved subdomain.",
+		"Otherwise it will default to using a new unreserved subdomain.\n" +
+		"Types supported are http, https and tcp.\n" +
+		"You can have any number type:port pairs in one command.",
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 1 && correctSubdomainRegex(args[len(args)-1]) {

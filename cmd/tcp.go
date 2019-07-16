@@ -28,9 +28,12 @@ import (
 // tcpCmd represents the tcp command
 var tcpCmd = &cobra.Command{
 	Use:   "tcp <port>",
-	Short: "Expose a local tcp port you specify",
-	Long: "Expose a local tcp port you specify.\n" +
-		"Example: `punch tcp 8080` will expose a local tcp port running on port 8080.\n",
+	Short: "Expose a local tcp server running on the port you specify",
+	Long: "Expose a local tcp server running on the port you specify.\n" +
+		"Note: punch will return to you the URL and port where your server is publically exposed.\n" +
+		" This will look something like tcp://tcp.holepunch.io:12345\n" +
+		" It could then be accessed with something like `telnet tcp.holepunch.io 12345`\n" +
+		"Example: `punch tcp 2000` will expose a local tcp server running on port 2000.",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
