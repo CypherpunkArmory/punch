@@ -41,12 +41,12 @@ func StartReverseTunnel(tunnelConfig ...Config) {
 		cleanup(&tunnelConfig[0])
 	}
 	for i := range tunnelConfig {
-		go startReverseTunnel(jumpConn, &tunnelConfig[i], &wg, &semaphore)
+		go startReverseTunnel(jumpConn, &tunnelConfig[i], &wg, &semaphore, tunnelConfig[i].TCPPorts[i])
 	}
 	wg.Wait()
 }
 
-func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore) {
+func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore, tcpPort string) {
 	defer cleanup(tunnelConfig)
 
 	if wg != nil {
@@ -89,7 +89,7 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 	var outputString string
 	if tunnelConfig.EndpointType == "tcp" {
 		outputString = fmt.Sprintf("Access your service at %s://tcp.%s:%s",
-			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tunnelConfig.TCPPorts[0])
+			tunnelConfig.EndpointType, tunnelConfig.EndpointURL.Host, tcpPort)
 	} else {
 		outputString = fmt.Sprintf("Access your website at %s://%s.%s",
 			tunnelConfig.EndpointType, tunnelConfig.Subdomain, tunnelConfig.EndpointURL.Host)
