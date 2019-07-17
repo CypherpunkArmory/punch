@@ -53,8 +53,7 @@ func (restClient *RestClient) StartSession(refreshToken string) error {
 		return errorCantConnectRestCall
 	}
 	req.Header.Add("Authorization", "Bearer "+refreshToken)
-	client := http.Client{}
-	resp, err := client.Do(req)
+	resp, err := restClient.Client.Do(req)
 	if err != nil {
 		return errorCantConnectRestCall
 	}
