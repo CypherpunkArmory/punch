@@ -132,7 +132,9 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 }
 func cleanup(config *Config) {
 	fmt.Println("\nClosing tunnel")
+	config.RestAPI.SetRefreshToken(config.RestAPI.RefreshToken)
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
+	config.RestAPI.SetAPIKey(config.RestAPI.APIKey)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
 		fmt.Fprintf(os.Stderr,
