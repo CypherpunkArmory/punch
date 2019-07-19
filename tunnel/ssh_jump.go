@@ -168,12 +168,13 @@ func createTunnel(jumpConn *ssh.Client, tunnelConfig *Config, semaphore *Semapho
 	// Connect to SSH remote server using serverEndpoint
 	var serverConn net.Conn
 	for {
-		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 		log.Debugf("Dial into SSHD Container %s", serverEndpoint.String())
+		serverConn, err = jumpConn.Dial("tcp", serverEndpoint.String())
 		if err == nil {
 			tunnelCreating.state = tunnelDone
 			break
 		}
+		log.Debugf("Dial into SSHD Container %s Failed: %s", serverEndpoint.String(), err.Error())
 		wait := exponentialBackoff.NextBackOff()
 		log.Debugf("Backoff Tick %s", wait.String())
 		time.Sleep(wait)

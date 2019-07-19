@@ -48,10 +48,7 @@ func StartReverseTunnel(tunnelConfig ...Config) {
 
 func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.WaitGroup, semaphore *Semaphore, tcpPort string) {
 	defer cleanup(tunnelConfig)
-
-	if wg != nil {
-		defer wg.Done()
-	}
+	defer wg.Done()
 	sClient, err := createTunnel(jumpConn, tunnelConfig, semaphore)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
@@ -132,7 +129,9 @@ func startReverseTunnel(jumpConn *ssh.Client, tunnelConfig *Config, wg *sync.Wai
 }
 func cleanup(config *Config) {
 	fmt.Println("\nClosing tunnel")
+	config.RestAPI.SetRefreshToken(config.RestAPI.RefreshToken)
 	errSession := config.RestAPI.StartSession(config.RestAPI.RefreshToken)
+	config.RestAPI.SetAPIKey(config.RestAPI.APIKey)
 	errDelete := config.RestAPI.DeleteTunnelAPI(config.Subdomain)
 	if errSession != nil || errDelete != nil {
 		fmt.Fprintf(os.Stderr,

@@ -20,12 +20,13 @@ import (
 	"net/http"
 )
 
-var apiVersion = "2019.4.19.1"
+var apiVersion = "2019.7.16.1"
 
 //RestClient A stuct to hold persistent data that is used between rest calls
 type RestClient struct {
 	URL          string
 	RefreshToken string
+	APIKey       string
 	Client       http.Client
 }
 
@@ -43,9 +44,16 @@ func NewRestClient(apiEndpoint string, refreshToken string) RestClient {
 	return restAPI
 }
 
+func (restClient *RestClient) SetRefreshToken(refreshToken string) {
+	rt := WithHeader(nil)
+	rt.Set("Authorization", "Bearer "+restClient.RefreshToken)
+	restClient.Client.Transport = rt
+}
+
 //SetAPIKey set api key header
 func (restClient *RestClient) SetAPIKey(apiKey string) {
-	rt := WithHeader(restClient.Client.Transport)
+	restClient.APIKey = apiKey
+	rt := WithHeader(nil)
 	rt.Set("Authorization", "Bearer "+apiKey)
 	restClient.Client.Transport = rt
 }
