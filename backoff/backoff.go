@@ -94,7 +94,7 @@ type Clock interface {
 
 // Default values for ExponentialBackOff.
 const (
-	DefaultInitialInterval     = 1000 * time.Millisecond
+	DefaultInitialInterval     = 250 * time.Millisecond
 	DefaultRandomizationFactor = 0.25
 	DefaultMultiplier          = 1.5
 	DefaultMaxInterval         = 7 * time.Second
